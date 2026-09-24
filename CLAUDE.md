@@ -1,3 +1,5 @@
+> 名字、域名、数据库、账号一律以 ShinkoLab 管理文档为准：~/DevGitRepo/shinkolab-ops/registry.yaml（GitHub Shinkou777/shinkolab-ops）。
+
 # 幻燈 GENTO 仓库说明
 
 Claude Code skill：素材 → 代码动画短片（Canvas 逐帧 + 代码合成配乐 → MP4）。
