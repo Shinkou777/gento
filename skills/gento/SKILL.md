@@ -8,10 +8,10 @@ argument-hint: "<素材或主题>，<可选：风格 / 画幅 / 片长 / 语言�
 
 用户敲 `/gento 素材，要求`。素材在 `$ARGUMENTS` 里。
 
-skill 目录记作 `$G`＝`${CLAUDE_SKILL_DIR}`。第一次用先确认依赖：
+下文的 `${CLAUDE_SKILL_DIR}` 是本 skill 的目录；取不到时本机是 `~/.claude/skills/gento`，插件安装时在插件缓存里。第一次用先确认依赖：
 
 ```bash
-test -d "$G/node_modules/puppeteer-core" || npm install --prefix "$G" --no-fund --no-audit
+test -d "${CLAUDE_SKILL_DIR}/node_modules/puppeteer-core" || npm install --prefix "${CLAUDE_SKILL_DIR}" --no-fund --no-audit
 command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 ```
 
@@ -46,7 +46,7 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 | 帧数 | 30 fps（推荐）／ 24 fps ／ 60 fps |
 | 内容 | 照素材原文 ／ 提炼成分镜 ／ 可以扩写（自拟的地方片尾标出） |
 
-风格、色调、音乐的名字和简介从 `$G/styles/catalog.json`、`$G/music/catalog.json` 读，不凭记忆写。每个风格的适用场景见 `$G/references/styles.md`。
+风格、色调、音乐的名字和简介从 `${CLAUDE_SKILL_DIR}/styles/catalog.json`、`${CLAUDE_SKILL_DIR}/music/catalog.json` 读，不凭记忆写。每个风格的适用场景见 `${CLAUDE_SKILL_DIR}/references/styles.md`。
 
 问完就开工，中途不再确认，直接出成品。
 
@@ -59,13 +59,13 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 ```
 
 1. **写 film.json**：`title` `style` `palette` `music` `format` `fps` `lang` `pace` `target`（目标秒数）。BPM 不写，跟音乐预设走。
-2. **写分镜 film.js**：用 `FILM({ scenes: [...] })`，场景按小节排。先读 `$G/references/grammar.md` 和 `$G/references/templates.md`。
+2. **写分镜 film.js**：用 `FILM({ scenes: [...] })`，场景按小节排。先读 `${CLAUDE_SKILL_DIR}/references/grammar.md` 和 `${CLAUDE_SKILL_DIR}/references/templates.md`。
    - 一小节的秒数＝240 ÷ BPM。片长 × BPM ÷ 240 ＝总小节数，照这个分配场景
    - 画风决定用哪些模板，节奏决定每场几小节，对照表在 templates.md
    - 屏幕上的字照 `~/.claude/CLAUDE.md` 的写作规则写；素材里没有的事实、数字、引语不写
-3. **质检**：`node $G/scripts/check.js <片源目录>`。有 FAIL 就改到没有；WARN 逐条看，能改就改。
-4. **看联系表**：`node $G/scripts/render.js <片源目录> --sheet --out <成品目录>`，用 Read 看图。自动质检看不出的：字色和底色对比、字的意思对不对、同一片里风格是否一致。查法见 `$G/references/qa.md`。
-5. **导出**：`node $G/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。
+3. **质检**：`node ${CLAUDE_SKILL_DIR}/scripts/check.js <片源目录>`。有 FAIL 就改到没有；WARN 逐条看，能改就改。
+4. **看联系表**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --sheet --out <成品目录>`，用 Read 看图。自动质检看不出的：字色和底色对比、字的意思对不对、同一片里风格是否一致。查法见 `${CLAUDE_SKILL_DIR}/references/qa.md`。
+5. **导出**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。
 6. **交付**：`open` 成品目录。回复里写清：成品路径、片长和规格、用了哪些选择、自拟了哪些文案、质检结果、有没有没做到的。
 
 ## 三、改片
@@ -76,7 +76,7 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 
 ## 四、扩展
 
-加风格、加音乐预设、加场景模板，照 `$G/references/extend.md` 做。改完跑 `node $G/scripts/test.js --matrix`，全部通过才算完成，然后提交推送仓库（GitHub `Shinkou777/gento`，本机 `~/DevGitRepo/gento`）。
+加风格、加音乐预设、加场景模板，照 `${CLAUDE_SKILL_DIR}/references/extend.md` 做。改完跑 `node ${CLAUDE_SKILL_DIR}/scripts/test.js --matrix`，全部通过才算完成，然后提交推送仓库（GitHub `Shinkou777/gento`，本机 `~/DevGitRepo/gento`）。
 
 ## 文件
 
