@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+# 构建与导出产物
+skills/gento/samples/*/film.html
+*.mp4
+*.wav
+*-sheet.jpg
+stills/

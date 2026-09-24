@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{LANG}}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="{{FONTS}}">
+<style>
+  :root { color-scheme: dark; --stage: #0f0e12; --panel: #1b1a20; --text: #efece6; --muted: #8f8a96; --accent: #ec3b2b; --track: #2c2a33; --ar: {{AR}}; --arn: {{ARN}}; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--stage); color: var(--text); font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans", system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center; padding: 24px 16px; box-sizing: border-box; }
+  .wrap { width: min(100%, 1280px, calc(76vh * var(--arn))); display: flex; flex-direction: column; gap: 14px; }
+  .frame { position: relative; width: 100%; aspect-ratio: var(--ar); background: #000; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+  canvas { display: block; width: 100%; height: 100%; }
+  #play { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    background: rgba(15,14,18,.55); border: 0; color: var(--text); cursor: pointer; font: inherit; }
+  #play[hidden] { display: none; }
+  #play .btn { width: 84px; height: 84px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
+  #play .btn::before { content: ""; border-left: 28px solid #fff; border-top: 17px solid transparent; border-bottom: 17px solid transparent; margin-left: 8px; }
+  #play span { font-weight: 900; letter-spacing: .08em; font-size: 14px; }
+  #play:focus-visible, .ctl button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .ctl { display: flex; align-items: center; gap: 12px; }
+  .ctl button { background: var(--panel); color: var(--text); border: 1px solid var(--track); border-radius: 6px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; min-width: 64px; }
+  #bar { flex: 1; accent-color: var(--accent); }
+  #time { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 0; }
+  body.export { padding: 0; display: block; background: #000; }
+  body.export .wrap { width: auto; }
+  body.export #play, body.export .ctl, body.export .note { display: none; }
+</style>
+<div class="wrap">
+  <div class="frame">
+    <canvas id="c"></canvas>
+    <button id="play" aria-label="播放"><div class="btn"></div><span>播放（开声音）</span></button>
+  </div>
+  <div class="ctl">
+    <button id="pp">播放</button>
+    <input id="bar" type="range" min="0" step="0.01" value="0" aria-label="进度">
+    <span id="time">0:00 / 0:00</span>
+  </div>
+  <p class="note" id="note"></p>
+</div>
+<script>
+{{SCRIPT}}
+</script>
