@@ -16,6 +16,17 @@ async function check(dir) {
   const fail = (m) => R.fails.push(m), warn = (m) => R.warns.push(m);
   try {
     for (const e of errors) fail(`页面报错：${e}`);
+    // 扫帧：每场开头、结尾，加每秒 10 帧；哪一帧抛错都算不通过
+    const sweep = await page.evaluate(() => {
+      const f = window.__film, ts = new Set();
+      for (const s of f.qa.scenes()) [s.t0, s.t0 + 1 / f.FPS, s.t0 + 2 / f.FPS, s.t1 - 1 / f.FPS].forEach(t => ts.add(+t.toFixed(4)));
+      for (let t = 0; t < f.DUR; t += .1) ts.add(+t.toFixed(4));
+      const bad = [];
+      for (const t of ts) { try { f.renderAt(t); } catch (e) { if (bad.length < 5) bad.push(`${t.toFixed(3)}s ${f.sceneAt(t)}：${e.message}`); } }
+      return { n: ts.size, bad };
+    });
+    for (const b of sweep.bad) fail(`渲染报错 ${b}`);
+    R.notes.unshift(`扫帧 ${sweep.n} 帧`);
     const fonts = await page.evaluate(() => window.__film.qa.fonts());
     for (const f of fonts) if (!f.ok) fail(`字体没加载：${f.role}（${f.font}）`);
     const scenes = await page.evaluate(() => window.__film.qa.scenes());

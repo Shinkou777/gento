@@ -21,7 +21,7 @@ const eOut = x => 1 - Math.pow(1 - x, 3);
 const eIn = x => x * x * x;
 const eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 const eSine = x => .5 - Math.cos(Math.PI * clamp(x)) / 2;
-const eBack = x => { const c1 = 1.7, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const eBack = x => { if (x <= 0) return 0; const c1 = 1.7, c3 = c1 + 1; return Math.max(0, 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2)); };
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const rng = seed => { let s = seed | 0 || 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
 const cnv = (w, h) => { const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; };
@@ -31,6 +31,11 @@ const slamS = (u, t0, from = 1.5, len = .1) => u < t0 ? 0 : lerp(from, 1, eOut(P
 /* ---------- 画布 ---------- */
 const cv = document.getElementById('c'); cv.width = W; cv.height = H;
 const ctx = cv.getContext('2d');
+// 兜底：动画起点的浮点误差会让半径变成 -1e-14，arc/ellipse 遇到负数会直接报错中断导出
+{ const cp = CanvasRenderingContext2D.prototype, arc0 = cp.arc, ell0 = cp.ellipse, rr0 = cp.roundRect;
+  cp.arc = function (x, y, r, ...a) { return arc0.call(this, x, y, r > 0 ? r : 0, ...a); };
+  cp.ellipse = function (x, y, rx, ry, ...a) { return ell0.call(this, x, y, rx > 0 ? rx : 0, ry > 0 ? ry : 0, ...a); };
+  cp.roundRect = function (x, y, w, h, r) { return rr0.call(this, x, y, w, h, typeof r === 'number' ? Math.max(0, r) : Array.isArray(r) ? r.map(v => Math.max(0, v)) : r); }; }
 // 质检开关：kit.text 在 QA.on 时记录每段字的包围盒
 const QA = { on: false, boxes: [], gid: 0 };
 

@@ -65,10 +65,15 @@ async function mp4(page, F, file) {
     '-i', wavPath, '-c:v', 'libx264', '-preset', 'slow', '-crf', '20', '-maxrate', '16M', '-bufsize', '32M', '-pix_fmt', 'yuv420p', '-r', String(F.FPS),
     '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', file], { stdio: ['pipe', 'ignore', 'inherit'] });
   const total = Math.round(F.DUR * F.FPS);
-  for (let f = 0; f < total; f++) {
-    const buf = Buffer.from(await grab(page, f / F.FPS), 'base64');
-    if (!p.stdin.write(buf)) await new Promise(r => p.stdin.once('drain', r));
-    if (f % 300 === 0) console.log(`帧 ${f}/${total}`);
+  try {
+    for (let f = 0; f < total; f++) {
+      const buf = Buffer.from(await grab(page, f / F.FPS), 'base64');
+      if (!p.stdin.write(buf)) await new Promise(r => p.stdin.once('drain', r));
+      if (f % 300 === 0) console.log(`帧 ${f}/${total}`);
+    }
+  } catch (e) {
+    p.stdin.destroy(); p.kill('SIGKILL'); fs.rmSync(file, { force: true }); fs.rmSync(wavPath, { force: true });
+    throw new Error(`导出中途出错，已删掉半截文件：${e.message}`);
   }
   p.stdin.end();
   const code = await new Promise(r => p.on('close', r));

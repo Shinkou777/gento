@@ -134,7 +134,7 @@ function synth() {
     Lb[s] = Math.tanh((Lb[s] + DL[s] * DK[s] + rvL[s]) * drive); Rb[s] = Math.tanh((Rb[s] + DR[s] * DK[s] + rvR[s]) * drive);
     pk = Math.max(pk, Math.abs(Lb[s]), Math.abs(Rb[s]));
   }
-  for (let s = 0; s < N; s++) { const tt = s / SR, f = .89 / pk * (tt > DUR - .45 ? Math.max(0, (DUR - tt) / .45) : 1); Lb[s] *= f; Rb[s] *= f; }
+  for (let s = 0; s < N; s++) { const tt = s / SR, f = .84 / pk * (tt > DUR - .45 ? Math.max(0, (DUR - tt) / .45) : 1); Lb[s] *= f; Rb[s] *= f; }
   return [Lb, Rb];
 }
 function wavBase64([Lc, Rc]) {
