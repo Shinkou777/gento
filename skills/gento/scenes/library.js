@@ -72,18 +72,19 @@ T.open = (o) => ({
 T.poster = (o) => {
   let lay;
   const layout = ctx => {
-    const c = { x: L.left + (WIDE ? 30 * U : 0), w: L.cw - (WIDE ? 30 * U : 0) };
+    const withArt = WIDE && o.art != null && o.art !== false;
+    const c = { x: L.left + (WIDE ? 30 * U : 0), w: (L.cw - (WIDE ? 30 * U : 0)) * (withArt ? .6 : 1) };
     let kick = o.kicker ? fitText(ctx, o.kicker, c.w * .7, (TALL ? 110 : 130) * U, F.head) : 0;
-    let big = fitText(ctx, o.title, c.w * (WIDE ? .62 : 1), (TALL ? 260 : 340) * U, /^[\x00-\x7f]+$/.test(o.title) ? F.latin : F.head);
+    let big = fitText(ctx, o.title, c.w * (WIDE && !withArt ? .62 : 1), (TALL ? 260 : 340) * U, /^[\x00-\x7f]+$/.test(o.title) ? F.latin : F.head);
     let tail = o.tail ? fitText(ctx, o.tail, c.w * .5, (TALL ? 110 : 130) * U, F.head) : 0;
     let sub = o.sub ? fitText(ctx, o.sub, c.w * (WIDE ? .6 : 1), 44 * U, F.body) : 0;
     // 几行加起来比版心高，就整体缩
     let seal = o.seal ? Math.min((WIDE ? 240 : 230) * U, (WIDE ? W * .42 : W * .8) / Math.max(2, chars(o.seal) + .9)) : 0;
-    const sealRow = !WIDE && o.seal ? seal * 1.7 + 50 * U : 0;
+    const sealBelow = !WIDE || withArt, sealRow = sealBelow && o.seal ? seal * 1.7 + 50 * U : 0;
     const need = kick + big * 1.05 + tail + sub + (o.note ? 30 * U : 0) + sealRow + 184 * U;
     if (need > L.ch) { const f = (L.ch - 184 * U) / (need - 184 * U); kick *= f; big *= f; tail *= f; seal *= f; sub = Math.max(28 * U, sub * f); }
-    const ys = stackY({ y: L.top, h: L.ch }, [{ h: kick }, { h: big * 1.05, gap: 56 * U }, { h: tail, gap: 44 * U }, { h: sub, gap: 60 * U }, { h: o.note ? 30 * U : 0, gap: 24 * U }, { h: !WIDE && o.seal ? seal * 1.7 : 0, gap: 50 * U }]);
-    return { c, kick, big, tail, sub, seal, ys, bigRole: /^[\x00-\x7f]+$/.test(o.title) ? F.latin : F.head };
+    const ys = stackY({ y: L.top, h: L.ch }, [{ h: kick }, { h: big * 1.05, gap: 56 * U }, { h: tail, gap: 44 * U }, { h: sub, gap: 60 * U }, { h: o.note ? 30 * U : 0, gap: 24 * U }, { h: sealBelow && o.seal ? seal * 1.7 : 0, gap: 50 * U }]);
+    return { c, withArt, sealBelow, kick, big, tail, sub, seal, ys, bigRole: /^[\x00-\x7f]+$/.test(o.title) ? F.latin : F.head };
   };
   return {
     kind: 'poster', hud: false, bg: { tone: 'base', deco: 1, poster: true },
@@ -91,6 +92,7 @@ T.poster = (o) => {
       lay = lay || layout(ctx);
       const { c, ys } = lay;
       STYLE.bg(ctx, u, d, t, this.bg);
+      if (lay.withArt) drawArt(ctx, o.art, { x: L.left + L.cw * .64, y: L.top - 20 * U, w: L.cw * .36, h: L.ch + 40 * U }, u, t, 7);
       const sl = i => eOut(P(u, i * .05, i * .05 + .22 * PACE.enter));
       if (o.kicker) text(ctx, o.kicker, lerp(-300, c.x, sl(0)), ys[0], { size: lay.kick, font: F.head, align: 'left', color: C.fg });
       ctx.save(); ctx.translate(lerp(W, 0, sl(1)), 0);
@@ -99,14 +101,14 @@ T.poster = (o) => {
       if (o.tail) text(ctx, o.tail, lerp(-300, c.x, sl(2)), ys[2], { size: lay.tail, font: F.head, align: 'left', color: C.fg });
       if (o.seal) {
         const sz = lay.seal, sw = sz * (chars(o.seal) + .9);
-        const sx = WIDE ? W - L.m - sw / 2 - 30 * U : c.x + sw / 2 + 20 * U;
-        STYLE.seal(ctx, o.seal, sx, WIDE ? ys[2] : ys[5], P(u, BT, BT + .11), { size: sz, rot: -.1 });
+        const sx = !lay.sealBelow ? W - L.m - sw / 2 - 30 * U : c.x + sw / 2 + 20 * U;
+        STYLE.seal(ctx, o.seal, sx, !lay.sealBelow ? ys[2] : ys[5], P(u, BT, BT + .11), { size: sz, rot: -.1 });
       }
       if (o.sub) typewriter(ctx, o.sub, c.x, ys[3], u, BT * 2.1, BT * 2.1 + chars(o.sub) * .04, { size: lay.sub, font: F.body });
       if (o.note && u > BT * 3.2) text(ctx, o.note, c.x, ys[4], { size: 26 * U, font: F.body, weight: 500, align: 'left', color: C.muted, alpha: P(u, BT * 3.2, BT * 3.5), meta: true });
     },
-    cues(k, t0) { if (o.seal) k.seal(t0 + BT, 1); if (o.sub) for (let i = 0; i < Math.min(chars(o.sub), 24); i++) k.type(t0 + BT * 2.1 + i * .04 * chars(o.sub) / Math.min(chars(o.sub), 24)); },
-    imp: d => o.seal ? [[BT, 1.6]] : [[0, .6]],
+    cues(k, t0) { k.hit(t0 + .2, .6); if (o.art) k.pop(t0 + .35, .5); if (o.seal) k.seal(t0 + BT, 1); if (o.sub) for (let i = 0; i < Math.min(chars(o.sub), 24); i++) k.type(t0 + BT * 2.1 + i * .04 * chars(o.sub) / Math.min(chars(o.sub), 24)); },
+    imp: d => o.seal ? [[.2, .6], [BT, 1.6]] : [[.2, .6]],
   };
 };
 
@@ -507,6 +509,7 @@ T.outro = (o) => {
       const figW = WIDE ? L.cw * .3 : L.cw * .4;
       // 人物
       const ci = eBack(P(u, 0, .35)), fs = WIDE ? (L.ch + 60 * U) / 600 : Math.min(1.1, L.ch * .5 / 600);
+      if (o.figure === false && WIDE) drawArt(ctx, o.art, { x: L.left, y: L.top, w: figW - 30 * U, h: L.ch }, u, t, 5);
       if (o.figure !== false && (WIDE || !o.items)) person(ctx, L.left + figW * .45, lerp(H + 600, WIDE ? L.bot + 80 * U : L.bot + 60 * U, ci), fs, { sign: o.sign, wave: !o.sign, t, head: { t, hair: 'bob', mouth: u > 2 * BT ? 'grin' : 'smile', ...(o.head || {}) } });
       // 气泡
       const bw = WIDE ? L.cw * .66 : L.cw, bh = lay.a * 1.4 + (lay.b ? lay.b * 1.5 : 0) + 70 * U, bx = WIDE ? L.right - bw / 2 : W / 2, by = WIDE ? L.top + bh / 2 + 20 * U : L.top + bh / 2;
@@ -521,7 +524,7 @@ T.outro = (o) => {
       // 清单卡
       if (o.items && u > 2 * BT) {
         const k = eBack(P(u, 2 * BT, 2 * BT + .22));
-        const cw = WIDE ? L.cw * .58 : L.cw, cx = WIDE ? L.right - cw : L.left, cy = by + bh / 2 + (WIDE ? 150 : 60) * U, ch = Math.min(L.bot - cy + 40 * U, (100 + o.items.length * 80) * U);
+        const cw = WIDE ? L.cw * .58 : L.cw, cx = WIDE ? L.right - cw : L.left, cy = by + bh / 2 + (WIDE && o.figure !== false ? 150 : 60) * U, ch = Math.min(L.bot - cy + (CFG.subs && CFG.subs.length ? 0 : 40 * U), (110 + o.items.length * 80) * U);
         ctx.save(); ctx.translate(lerp(W + 100, 0, clamp(k)), 0);
         const inner = STYLE.panel(ctx, cx, cy, cw, ch, { head: o.itemsHead || 'NOTE' });
         const rh = inner.h / o.items.length;

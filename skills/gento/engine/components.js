@@ -131,6 +131,17 @@ const STYLE_DEFAULTS = {
     ctx.fillStyle = fg; ctx.fillRect(x0, y0 + 350 * U, 520 * U * eOut(P(u, .1, .4)), 6 * U);
     text(ctx, `${o.en || 'NO.'} ${pad2(o.n)} / ${pad2(o.total)}`, x0, y0 + 410 * U, { size: 30 * U, font: F.mono, align: 'left', color: fg, alpha: P(u, .15, .3), meta: true });
   },
+  // 三语同屏的副标：底部一块淡底，每种语言一行。场景条目第四项写 { sub: { ja, zh } }
+  subs(ctx, u, d, t, sc) {
+    const langs = CFG.subs.filter(l => sc.sub[l]); if (!langs.length) return;
+    const k = eOut(P(u, .15, .45)) * (1 - P(u, d - .12, d)); if (k <= 0) return;
+    const base = (TALL ? 40 : 36) * U, lh = base * 1.45, maxW = W - 2 * L.m - 60 * U;
+    const sizes = langs.map(l => fitText(ctx, sc.sub[l], maxW, base, FSUB[l])), ww = Math.max(...langs.map((l, i) => tw(ctx, sc.sub[l], sizes[i], FSUB[l]))) + 60 * U;
+    const band0 = L.bot + 20 * U, band1 = H - (TALL ? 120 : 44) * U, cy = (band0 + band1) / 2, hh = langs.length * lh + 20 * U;
+    const tn = (sc.bg && sc.bg.tone) || 'base', dark = isDarkTone(tn) || tn === 'a1';
+    ctx.save(); ctx.globalAlpha = k * .8; rr(ctx, W / 2 - ww / 2, cy - hh / 2, ww, hh, 12 * U, dark ? 'rgba(0,0,0,.45)' : tone(tn)); ctx.restore();
+    langs.forEach((l, i) => text(ctx, sc.sub[l], W / 2, cy + (i - (langs.length - 1) / 2) * lh, { size: sizes[i], font: FSUB[l], color: dark ? C.onDark : onTone(tn), alpha: k, meta: true }));
+  },
   // 顶部信息条：卷宗号 + 章节 + 日期
   hud(ctx, t, sc) {
     if (HUDCFG.off || sc.hud === false || !(sc.kind === 'content' || sc.hud === true)) return;

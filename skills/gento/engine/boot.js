@@ -4,7 +4,7 @@ document.title = CFG.title;
 document.getElementById('note').textContent = CFG.note || '';
 // 脚本里出现过的所有非 ASCII 字符喂给字体加载，让 Google Fonts 把用到的 CJK 分片都拉下来
 const ALL_TEXT = [...new Set((document.currentScript ? document.currentScript.textContent : '').replace(/[\x00-\x7f]/g, ''))].join('') + 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$%.,:;!?*/()+-–—≈→↓↑★“”';
-const FONT_LOADS = [...new Set(Object.values(F).filter(r => r && r.f).flatMap(r => [`${r.st ? r.st + ' ' : ''}${r.w} 60px ${r.f}`, ...(r.also || []).map(w => `${w} 60px ${r.f}`)]))];
+const FONT_LOADS = [...new Set([...Object.values(F), ...Object.values(FSUB)].filter(r => r && r.f).flatMap(r => [`${r.st ? r.st + ' ' : ''}${r.w} 60px ${r.f}`, ...(r.also || []).map(w => `${w} 60px ${r.f}`)]))];
 const KEYS = SC.flatMap(s => [s.t0 + (s.t1 - s.t0) * .35, s.t0 + (s.t1 - s.t0) * .9]);
 const ready = (async () => {
   STYLE.textures();

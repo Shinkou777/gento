@@ -49,6 +49,18 @@ function synth() {
   const koto = (t0, f, g = 1, len = 1.2) => { let ph = 0, y = 0; add(t0, len, x => { const ff = f * (1 + .012 * Math.exp(-x * 20)); ph = (ph + ff / SR) % 1; const saw = 2 * ph - 1; y += (.08 + .6 * Math.exp(-x * 14)) * (saw - y); return y * Math.exp(-x * 3.4) * env(x, len, .002, .1) * .16; }, { g, rv: .45, pan: (rnd()) * .5 }); };
   // 竹笛味：带气声的正弦
   const flute = (t0, f, len, g = 1) => { const fl = new SVF(); add(t0, len, x => (Math.sin(2 * Math.PI * f * x + .06 * Math.sin(2 * Math.PI * 5.2 * x)) * .8 + fl.run(rnd(), f * 2, .9).bp * .25) * env(x, len, .08, .2) * .09, { g, rv: .55 }); };
+  // 拨弦：Karplus-Strong，一段噪声在延迟线里衰减，里拉琴、竖琴、吉他味
+  const ks = (t0, f, g = 1, len = 1.6, o = {}) => {
+    const n = Math.max(2, Math.round(SR / f)), buf = new Float32Array(n), br = o.bright ?? .8, damp = o.damp ?? .996;
+    for (let i = 0; i < n; i++) buf[i] = rnd() * br + (i < n / 2 ? .3 : -.3) * (1 - br);
+    let p = 0;
+    add(t0, len, x => { const a = buf[p], b = buf[(p + 1) % n]; buf[p] = (a + b) * .5 * damp; p = (p + 1) % n; return a * env(x, len, .001, .25) * .42; }, { g, rv: o.rv ?? .4, pan: o.pan ?? 0 });
+  };
+  // 扫弦：几根弦依次拨响
+  const strum = (t0, fs, g = 1, gap = .028, len = 1.6) => fs.forEach((f, i) => ks(t0 + i * gap, f, g * (1 - i * .08), len, { pan: (i / Math.max(1, fs.length - 1) - .5) * .6 }));
+  // 框鼓：低沉的 dum 与清脆的 tek
+  const dum = (t0, g = 1) => { tom(t0, 68, g * 1.1, 6.5); noiseHit(t0, .08, 400, g * .6, .15); duck(t0, .45); };
+  const tek = (t0, g = 1) => { rim(t0, g * .7); noiseHit(t0, .05, 3200, g * .35, .2); };
   // 锯齿琶音（赛博）
   const arp = (t0, f, len = .12, g = 1, pan = 0) => { let ph = 0, y = 0; add(t0, len, x => { ph = (ph + f / SR) % 1; y += .35 * (2 * ph - 1 - y); return y * Math.exp(-x * 14) * env(x, len, .002, .02) * .09; }, { g, rv: .3, pan, duck: true }); };
   // 金属敲击：非谐 FM
@@ -73,7 +85,7 @@ function synth() {
   const fire = (t0, len, g = 1) => { const f = new SVF(); add(t0, len, x => f.run(rnd(), 500, .9).lp * Math.min(1, x * 3) * Math.min(1, (len - x) * 2) * .5, { g, rv: .2 }); };
   const errBeep = t0 => { for (const [dt, f] of [[0, 880], [.14, 660]]) { let ph = 0; add(t0 + dt, .13, x => { ph = (ph + f / SR) % 1; return (ph < .5 ? 1 : -1) * .1 * Math.min(1, (0.13 - x) * 60); }); } };
 
-  const k = { add, rnd, mark, duck, SVF, kick, clap, snare, hat, shaker, rim, tom, taiko, woodclap, sub, bass, b808, stab, pad, pluck, bell, epiano, piano, marimba, koto, flute, arp, metal, boom, vinyl, riser, crash, noiseHit, slam, stampHit, shutter, type, tick, pop, ping, boing, whoosh, bitcrush, crackle, fire, errBeep };
+  const k = { add, rnd, mark, duck, SVF, kick, clap, snare, hat, shaker, rim, tom, taiko, woodclap, sub, bass, b808, stab, pad, pluck, bell, epiano, piano, marimba, koto, flute, arp, metal, boom, vinyl, ks, strum, dum, tek, riser, crash, noiseHit, slam, stampHit, shutter, type, tick, pop, ping, boing, whoosh, bitcrush, crackle, fire, errBeep };
   // 语义音效：先用默认，再让音乐预设覆盖
   const SEM = {
     hit: (t, g = 1) => { slam(t, g); stampHit(t, g * 1.1); },

@@ -23,18 +23,19 @@ if (args.includes('--only-matrix')) { cases.length = 0; args.push('--matrix'); }
 if (args.includes('--matrix')) {
   const ids = Object.keys(styles), fm = ['9:16', '1:1', '4:5', '9:16'], lg = ['ja', 'en', 'zh', 'ja', 'en', 'zh', 'ja', 'en'];
   ids.forEach((s, i) => cases.push({ style: s, format: fm[i % fm.length], lang: lg[i % lg.length], palette: Object.keys(styles[s].palettes)[1 + (i % 2)] }));
+  cases.push({ style: 'amphora', format: '16:9', lang: 'en', subs: ['ja', 'zh'], palette: 'marble' }, { style: 'explainer', format: '9:16', lang: 'zh', subs: ['en', 'ja'] });
 }
 
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gento-test-'));
   let failed = 0;
   for (const c of cases) {
-    const dir = path.join(tmp, `${c.style}-${c.format.replace(':', 'x')}-${c.lang}`);
+    const dir = path.join(tmp, `${c.style}-${c.format.replace(':', 'x')}-${c.lang}${c.subs ? '-sub' : ''}`);
     fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, 'film.json'), JSON.stringify({ title: `test ${c.style}`, style: c.style, palette: c.palette, format: c.format, lang: c.lang, script: path.join(ROOT, 'samples/_tour/film.js') }));
+    fs.writeFileSync(path.join(dir, 'film.json'), JSON.stringify({ title: `test ${c.style}`, style: c.style, palette: c.palette, format: c.format, lang: c.lang, subs: c.subs, script: path.join(ROOT, 'samples/_tour/film.js') }));
     const t0 = Date.now();
     const R = await check(dir);
-    const tag = `${c.style.padEnd(11)} ${c.format.padEnd(5)} ${c.lang} ${(c.palette || '').padEnd(10)}`;
+    const tag = `${c.style.padEnd(11)} ${c.format.padEnd(5)} ${c.lang}${c.subs ? '+' + c.subs.join('+') : ''} ${(c.palette || '').padEnd(10)}`;
     console.log(`${R.fails.length ? 'FAIL' : 'ok  '}  ${tag} ${R.dur}s  提醒 ${R.warns.length}  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
     for (const m of R.fails) console.log('      FAIL ' + m);
     for (const m of R.warns) console.log('      WARN ' + m);
@@ -42,7 +43,7 @@ if (args.includes('--matrix')) {
     if (sheetsDir) {
       fs.mkdirSync(sheetsDir, { recursive: true });
       const { page, browser, F } = await openFilm(dir);
-      await sheet(page, F.KEYS, path.join(sheetsDir, `${c.style}-${c.format.replace(':', 'x')}-${c.lang}.jpg`), F.W >= F.H ? 4 : 6);
+      await sheet(page, F.KEYS, path.join(sheetsDir, `${c.style}-${c.format.replace(':', 'x')}-${c.lang}${c.subs ? '-sub' : ''}.jpg`), F.W >= F.H ? 4 : 6);
       await browser.close();
     }
   }

@@ -320,6 +320,49 @@ const MUSIC = {
     },
   }),
 
+  // 里拉琴：Karplus-Strong 拨弦、框鼓、簧管低音持续音，D 多利亚调式。希腊陶瓶的默认
+  lyre: preset({
+    prog: [[73.42, [146.83, 220, 293.66, 349.23]], [65.41, [130.81, 196, 261.63, 329.63]], [58.27, [116.54, 174.61, 233.08, 293.66]], [65.41, [130.81, 196, 261.63, 329.63]]],
+    darkProg: [[73.42, [146.83, 220, 293.66, 349.23]], [58.27, [116.54, 174.61, 233.08, 293.66]], [49, [98, 146.83, 196, 233.08]], [55, [110, 164.81, 220, 277.18]]],
+    scale: [293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33], room: .88, drive: .5,
+    sfx: k => ({
+      hit: (t, g = 1) => { k.dum(t, g * 1.2); k.strum(t, [146.83, 220, 293.66, 440], g * 1.1, .018, 1.4); },
+      seal: (t, g = 1) => { k.dum(t, g * 1.4); k.strum(t, [110, 146.83, 220, 293.66, 440, 587.33], g * 1.2, .022, 2.2); k.bell(t + .05, 2349.3, g * .45, 1.2); },
+      pop: (t, g = 1) => k.ks(t, 880, g * .9, .9, { bright: .9 }),
+      tick: (t, g = 1) => k.bell(t, 2637, g * .25, .4),
+      ding: (t, f = 2349.3, g = 1) => k.bell(t, f, g * .5, 1.4),
+      swish: (t, len = .3, g = .4) => k.whoosh(t, len * 1.4, g),
+      note: (t, i = 0, g = 1) => k.ks(t, [293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33][((i % 8) + 8) % 8], g, 1.2),
+    }),
+    intro(k, t0, d) {
+      const n = Math.max(1, Math.round(d / BT));
+      for (let i = 0; i < n; i++) { const [r, tones] = this.prog[i % 4], t = t0 + i * BT; k.dum(t, 1.1); k.strum(t, tones.map(f => f * 2), 1.1, .02, 1.3); k.sub(t, r, BT * .9, .7); }
+      k.pad(t0, [73.42, 110], d, .7, { cut: .012, att: 2, duck: false });
+    },
+    poster(k, t0, d) { for (let i = 0; i < Math.round(d / BT); i++) { const t = t0 + i * BT; if (i % 2 === 0) k.dum(t, .7); else k.tek(t, .7); k.ks(t + BT / 2, [587.33, 523.25, 440, 392][i % 4], .6, 1); } k.pad(t0, [73.42, 110], d, .7, { cut: .012, att: 2, duck: false }); },
+    chapter(k, t0) { k.bell(t0, 2349.3, .5, 1.2); [587.33, 523.25, 440, 392, 349.23, 293.66].forEach((f, i) => k.ks(t0 + i * .04, f, .8, 1.3)); k.dum(t0, 1); },
+    stop(k, t0, d) { k.dum(t0, 1.3); k.pad(t0, [73.42, 110, 146.83], d, .9, { cut: .01, att: 1.5, duck: false }); k.ks(t0 + .1, 146.83, .9, 2.5, { damp: .998 }); },
+    outro(k, t0, d) {
+      const mel = [587.33, 523.25, 440, 392, 440, 349.23, 329.63, 293.66], n = Math.round(d / BT);
+      for (let i = 0; i < n; i++) { k.ks(t0 + i * BT, mel[i % mel.length], .9, 1.6); if (i % 2 === 0) k.dum(t0 + i * BT, .55); else k.tek(t0 + i * BT + BT / 2, .5); }
+      k.pad(t0, [73.42, 110, 146.83], d, .8, { cut: .01, att: 1.5, duck: false });
+    },
+    groove(k, from, to, o) {
+      const sc = [293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33];
+      k.pad(from, [73.42, 110], to - from, .75, { cut: .011, att: 2, duck: false });
+      for (let bt = Math.round(from / BT); bt < Math.round(to / BT); bt++) {
+        const t0 = bt * BT, ib = bt % 4, bar = Math.floor(bt / 4), hot = inRange(t0, o.hot), dark = inRange(t0, o.dark);
+        const [root, tones] = (dark ? this.darkProg : this.prog)[bar % 4];
+        if (ib === 0 || ib === 2) k.dum(t0, ib === 0 ? 1 : .75);
+        k.tek(t0 + BT / 2, .6); if (ib === 3 || hot) k.tek(t0 + 3 * BT / 4, .45);
+        if (ib === 0) { k.strum(t0, tones.map(f => f * 2), .75, .03, BAR * .9); k.sub(t0, root, BAR * .95, .55); }
+        const up = [0, 2, 4, 7, 5, 4, 2, 1][(bt * 2) % 8], up2 = [4, 5, 7, 4, 2, 4, 5, 2][(bt + bar) % 8];
+        k.ks(t0 + BT / 2, sc[up] * (dark ? .5 : 1), .55, 1.1, { pan: -.3 });
+        if (ib % 2 === 1 || hot) k.ks(t0 + 3 * BT / 4, sc[up2], .4, .9, { pan: .3 });
+      }
+    },
+  }),
+
   // 无配乐：只留音效
   none: preset({
     bed(k) { for (const s of SC) if (s.kind === 'verdict') k.sub(s.t0, 41.2, 1.2, 1); },

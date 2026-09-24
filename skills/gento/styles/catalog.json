@@ -1,50 +1,243 @@
 {
   "riso": {
-    "name": "孔版", "desc": "孔版印刷海报：纸加四种油墨、网点、错版阴影、橡皮图章，字按拍砸进来",
-    "palettes": { "standard": "标准四墨（红蓝黄墨）", "pinkgreen": "荧光粉绿", "orangenavy": "橙与藏青" },
-    "music": "house", "pace": "standard",
-    "fonts": { "common": ["Anton", "IBM+Plex+Mono:wght@500;700"], "zh": ["Noto+Serif+SC:wght@900", "Noto+Sans+SC:wght@500;900", "ZCOOL+QingKe+HuangYou"], "ja": ["Noto+Serif+JP:wght@900", "Noto+Sans+JP:wght@500;900", "Dela+Gothic+One"], "en": ["DM+Serif+Display", "Inter:wght@500;800"] }
+    "name": "孔版",
+    "desc": "孔版印刷海报：纸加四种油墨、网点、错版阴影、橡皮图章，字按拍砸进来",
+    "palettes": {
+      "standard": "标准四墨（红蓝黄墨）",
+      "pinkgreen": "荧光粉绿",
+      "orangenavy": "橙与藏青"
+    },
+    "music": "house",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Anton",
+        "IBM+Plex+Mono:wght@500;700"
+      ],
+      "zh": [
+        "Noto+Serif+SC:wght@900",
+        "Noto+Sans+SC:wght@500;900",
+        "ZCOOL+QingKe+HuangYou"
+      ],
+      "ja": [
+        "Noto+Serif+JP:wght@900",
+        "Noto+Sans+JP:wght@500;900",
+        "Dela+Gothic+One"
+      ],
+      "en": [
+        "DM+Serif+Display",
+        "Inter:wght@500;800"
+      ]
+    }
   },
   "swiss": {
-    "name": "瑞士网格", "desc": "国际主义平面：网格、无衬线大字、一个强调色，位移干净利落",
-    "palettes": { "white": "白底红", "black": "黑底黄", "cream": "米色配蓝" },
-    "music": "minimal", "pace": "standard",
-    "fonts": { "common": ["Inter+Tight:wght@500;800", "JetBrains+Mono:wght@500;700"], "zh": ["Noto+Sans+SC:wght@500;700;900"], "ja": ["Noto+Sans+JP:wght@500;700;900"], "en": [] }
+    "name": "瑞士网格",
+    "desc": "国际主义平面：网格、无衬线大字、一个强调色，位移干净利落",
+    "palettes": {
+      "white": "白底红",
+      "black": "黑底黄",
+      "cream": "米色配蓝"
+    },
+    "music": "minimal",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Inter+Tight:wght@500;800",
+        "JetBrains+Mono:wght@500;700"
+      ],
+      "zh": [
+        "Noto+Sans+SC:wght@500;700;900"
+      ],
+      "ja": [
+        "Noto+Sans+JP:wght@500;700;900"
+      ],
+      "en": []
+    }
   },
   "glitch": {
-    "name": "故障霓虹", "desc": "黑底荧光：扫描线、RGB 错位、切片抖动、终端字",
-    "palettes": { "magenta": "品红与青", "acid": "酸性绿", "sunset": "橙紫" },
-    "music": "cyber", "pace": "fast",
-    "fonts": { "common": ["Chakra+Petch:wght@600;700", "Share+Tech+Mono"], "zh": ["Noto+Sans+SC:wght@500;900", "ZCOOL+QingKe+HuangYou"], "ja": ["Noto+Sans+JP:wght@500;900", "DotGothic16"], "en": [] }
+    "name": "故障霓虹",
+    "desc": "黑底荧光：扫描线、RGB 错位、切片抖动、终端字",
+    "palettes": {
+      "magenta": "品红与青",
+      "acid": "酸性绿",
+      "sunset": "橙紫"
+    },
+    "music": "cyber",
+    "pace": "fast",
+    "fonts": {
+      "common": [
+        "Chakra+Petch:wght@600;700",
+        "Share+Tech+Mono"
+      ],
+      "zh": [
+        "Noto+Sans+SC:wght@500;900",
+        "ZCOOL+QingKe+HuangYou"
+      ],
+      "ja": [
+        "Noto+Sans+JP:wght@500;900",
+        "DotGothic16"
+      ],
+      "en": []
+    }
   },
   "woodblock": {
-    "name": "木版浮世绘", "desc": "和纸、靛蓝朱红、木纹套色、浪与日轮、朱印落款，可竖排",
-    "palettes": { "indigo": "靛蓝朱红", "pine": "松绿金", "sakura": "樱色" },
-    "music": "wafu", "pace": "standard",
-    "fonts": { "common": ["Cormorant+Garamond:wght@600;700", "IBM+Plex+Mono:wght@500"], "zh": ["Noto+Serif+SC:wght@700;900", "Ma+Shan+Zheng", "Noto+Sans+SC:wght@500;700"], "ja": ["Shippori+Mincho+B1:wght@700;800", "Yuji+Syuku", "Noto+Sans+JP:wght@500;700"], "en": ["Noto+Serif:wght@700"] }
+    "name": "木版浮世绘",
+    "desc": "和纸、靛蓝朱红、木纹套色、浪与日轮、朱印落款，可竖排",
+    "palettes": {
+      "indigo": "靛蓝朱红",
+      "pine": "松绿金",
+      "sakura": "樱色"
+    },
+    "music": "wafu",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Cormorant+Garamond:wght@600;700",
+        "IBM+Plex+Mono:wght@500"
+      ],
+      "zh": [
+        "Noto+Serif+SC:wght@700;900",
+        "Ma+Shan+Zheng",
+        "Noto+Sans+SC:wght@500;700"
+      ],
+      "ja": [
+        "Shippori+Mincho+B1:wght@700;800",
+        "Yuji+Syuku",
+        "Noto+Sans+JP:wght@500;700"
+      ],
+      "en": [
+        "Noto+Serif:wght@700"
+      ]
+    }
   },
   "blueprint": {
-    "name": "蓝图工程", "desc": "蓝底白线、坐标网格、尺寸标注、零件图一笔笔画出来",
-    "palettes": { "classic": "经典蓝图", "scope": "黑底绿线", "draft": "白纸蓝线" },
-    "music": "minimal", "pace": "standard",
-    "fonts": { "common": ["Barlow+Condensed:wght@500;700", "JetBrains+Mono:wght@500;700"], "zh": ["Noto+Sans+SC:wght@500;700"], "ja": ["Noto+Sans+JP:wght@500;700"], "en": [] }
+    "name": "蓝图工程",
+    "desc": "蓝底白线、坐标网格、尺寸标注、零件图一笔笔画出来",
+    "palettes": {
+      "classic": "经典蓝图",
+      "scope": "黑底绿线",
+      "draft": "白纸蓝线"
+    },
+    "music": "minimal",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Barlow+Condensed:wght@500;700",
+        "JetBrains+Mono:wght@500;700"
+      ],
+      "zh": [
+        "Noto+Sans+SC:wght@500;700"
+      ],
+      "ja": [
+        "Noto+Sans+JP:wght@500;700"
+      ],
+      "en": []
+    }
   },
   "industrial": {
-    "name": "工业渲染", "desc": "产品渲染：金属与磨砂、棚拍光、转台、爆炸图、标注线",
-    "palettes": { "graphite": "石墨配安全橙", "studio": "银白棚拍", "blackgold": "黑金" },
-    "music": "cinematic", "pace": "standard",
-    "fonts": { "common": ["Barlow:wght@600;800", "JetBrains+Mono:wght@500"], "zh": ["Noto+Sans+SC:wght@300;500;900"], "ja": ["Noto+Sans+JP:wght@300;500;900"], "en": [] }
+    "name": "工业渲染",
+    "desc": "产品渲染：金属与磨砂、棚拍光、转台、爆炸图、标注线",
+    "palettes": {
+      "graphite": "石墨配安全橙",
+      "studio": "银白棚拍",
+      "blackgold": "黑金"
+    },
+    "music": "cinematic",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Barlow:wght@600;800",
+        "JetBrains+Mono:wght@500"
+      ],
+      "zh": [
+        "Noto+Sans+SC:wght@300;500;900"
+      ],
+      "ja": [
+        "Noto+Sans+JP:wght@300;500;900"
+      ],
+      "en": []
+    }
   },
   "serene": {
-    "name": "岁月静好", "desc": "暖光、柔和色、胶片颗粒、慢慢浮现，植物与光斑",
-    "palettes": { "sage": "奶油鼠尾草", "apricot": "暖阳杏色", "mist": "雾蓝" },
-    "music": "piano", "pace": "slow",
-    "fonts": { "common": ["Cormorant+Garamond:ital,wght@0,500;1,500", "IBM+Plex+Mono:wght@400"], "zh": ["Noto+Serif+SC:wght@500;700", "Long+Cang"], "ja": ["Zen+Old+Mincho:wght@500;700", "Klee+One:wght@600"], "en": ["Noto+Serif:ital,wght@0,500;1,500"] }
+    "name": "岁月静好",
+    "desc": "暖光、柔和色、胶片颗粒、慢慢浮现，植物与光斑",
+    "palettes": {
+      "sage": "奶油鼠尾草",
+      "apricot": "暖阳杏色",
+      "mist": "雾蓝"
+    },
+    "music": "piano",
+    "pace": "slow",
+    "fonts": {
+      "common": [
+        "Cormorant+Garamond:ital,wght@0,500;1,500",
+        "IBM+Plex+Mono:wght@400"
+      ],
+      "zh": [
+        "Noto+Serif+SC:wght@500;700",
+        "Long+Cang"
+      ],
+      "ja": [
+        "Zen+Old+Mincho:wght@500;700",
+        "Klee+One:wght@600"
+      ],
+      "en": [
+        "Noto+Serif:ital,wght@0,500;1,500"
+      ]
+    }
   },
   "explainer": {
-    "name": "讲故事 / 讲原理", "desc": "扁平插画说明片：圆润图形、图标、箭头、分步拆解",
-    "palettes": { "daylight": "明亮", "night": "夜读深蓝", "textbook": "课本纸色" },
-    "music": "bright", "pace": "standard",
-    "fonts": { "common": ["Fredoka:wght@600;700", "IBM+Plex+Mono:wght@500;700"], "zh": ["Noto+Sans+SC:wght@500;900", "ZCOOL+KuaiLe"], "ja": ["M+PLUS+Rounded+1c:wght@500;800", "Kosugi+Maru"], "en": ["Nunito:wght@600;900"] }
+    "name": "讲故事 / 讲原理",
+    "desc": "扁平插画说明片：圆润图形、图标、箭头、分步拆解",
+    "palettes": {
+      "daylight": "明亮",
+      "night": "夜读深蓝",
+      "textbook": "课本纸色"
+    },
+    "music": "bright",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Fredoka:wght@600;700",
+        "IBM+Plex+Mono:wght@500;700"
+      ],
+      "zh": [
+        "Noto+Sans+SC:wght@500;900",
+        "ZCOOL+KuaiLe"
+      ],
+      "ja": [
+        "M+PLUS+Rounded+1c:wght@500;800",
+        "Kosugi+Maru"
+      ],
+      "en": [
+        "Nunito:wght@600;900"
+      ]
+    }
+  },
+  "amphora": {
+    "name": "希腊陶瓶",
+    "desc": "黑绘红绘陶瓶与大理石：回纹边、月桂、陶瓶主视觉、柱式柱状图、罗马大写衬线字",
+    "palettes": {
+      "terracotta": "赭红陶土",
+      "redfigure": "黑底红绘",
+      "marble": "大理石白"
+    },
+    "music": "lyre",
+    "pace": "standard",
+    "fonts": {
+      "common": [
+        "Cinzel:wght@500;700;900",
+        "Cormorant+Garamond:wght@500;600;700",
+        "Noto+Serif:wght@500;700",
+        "IBM+Plex+Mono:wght@500"
+      ],
+      "zh": [
+        "Noto+Serif+SC:wght@500;700;900"
+      ],
+      "ja": [
+        "Noto+Serif+JP:wght@500;700;900"
+      ],
+      "en": []
+    }
   }
 }

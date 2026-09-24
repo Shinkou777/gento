@@ -13,7 +13,7 @@
 | 字段 | 说明 |
 |---|---|
 | `palettes` | 至少三套。每套 token：bg bg2 fg muted a1 a2 a3 dark onDark line white shadow skin，建议也写 panelFg onA1 onA2 onA3 flash scrim；a2 是浅色时写 `lightA2: true` |
-| `fonts` | zh / ja / en 各一组角色：head body shout latin mono，每个 `{ f, w, ls?, up?, st?, also? }` |
+| `fonts` | zh / ja / en 各一组角色：head body shout latin mono（可选 sub：三语同屏时这门语言做副标用的字体），每个 `{ f, w, ls?, up?, st?, also? }` |
 | `motion` | hitFrom hitLen shake jitter push cutLen soft |
 
 4. 按需覆盖零件（没写的用 `engine/components.js` 的默认）：
@@ -26,7 +26,7 @@
 | `jitter(t)` / `cut(ctx,k)` | 整帧抖动 / 切场效果 |
 | `title` `hit` `seal` `marker` | 标题、重击词、章、强调 |
 | `panel` `panelShadow` `caption` `popup` | 卡片、字幕条、弹窗 |
-| `wordCard` `chapter` `hud` | 字卡、章节卡（尺寸用 `chapterGeom()`）、顶部信息 |
+| `wordCard` `chapter` `hud` `subs` | 字卡、章节卡（尺寸用 `chapterGeom()`）、顶部信息、三语副标 |
 | `ornament(ctx,x,y,w,h,u,t,o)` | 主视觉，填满给定区域，o.seed / o.kind 切变体 |
 | `shade` `cheek` `bar` `link` | 人物阴影、脸颊、柱子、连线 |
 

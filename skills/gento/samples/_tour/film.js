@@ -1,12 +1,12 @@
 // 风格样片：八种风格、三种语言共用这一份脚本，把每种场景模板都走一遍。
 // 时长按小节写，音乐 BPM 不同，片长跟着变。
 const NAMES = {
-  zh: { riso: '孔版', swiss: '瑞士网格', glitch: '故障霓虹', woodblock: '木版浮世绘', blueprint: '蓝图工程', industrial: '工业渲染', serene: '岁月静好', explainer: '讲故事' },
-  ja: { riso: '孔版', swiss: 'スイス・グリッド', glitch: 'グリッチ・ネオン', woodblock: '木版浮世絵', blueprint: '青図', industrial: '工業レンダー', serene: '穏やかな日々', explainer: '解説アニメ' },
-  en: { riso: 'Riso', swiss: 'Swiss Grid', glitch: 'Glitch Neon', woodblock: 'Woodblock', blueprint: 'Blueprint', industrial: 'Industrial Render', serene: 'Serene', explainer: 'Explainer' },
+  zh: { amphora: '希腊陶瓶', riso: '孔版', swiss: '瑞士网格', glitch: '故障霓虹', woodblock: '木版浮世绘', blueprint: '蓝图工程', industrial: '工业渲染', serene: '岁月静好', explainer: '讲故事' },
+  ja: { amphora: 'ギリシャの壺', riso: '孔版', swiss: 'スイス・グリッド', glitch: 'グリッチ・ネオン', woodblock: '木版浮世絵', blueprint: '青図', industrial: '工業レンダー', serene: '穏やかな日々', explainer: '解説アニメ' },
+  en: { amphora: 'Amphora', riso: 'Riso', swiss: 'Swiss Grid', glitch: 'Glitch Neon', woodblock: 'Woodblock', blueprint: 'Blueprint', industrial: 'Industrial Render', serene: 'Serene', explainer: 'Explainer' },
 };
 const NAME = NAMES[LANG][CFG.style];
-const S = {
+const DICT = {
   zh: {
     words: ['素材', '问答', '成片', 'GENTO'],
     poster: { kicker: '一段素材', title: 'GENTO', tail: '做成短片', seal: '幻燈', sub: '—— 画面、配乐、导出都在一个文件里', note: `* 风格样片 · ${NAME}` },
@@ -52,17 +52,20 @@ const S = {
     verdict: { lead: 'Verdict:', seal: 'READY', tail: 'Fin.', tailSub: 'END' },
     outro: { lines: ['Keyword: /gento', 'then paste your brief'], items: ['say the keyword and the brief', 'answer a few questions', 'the film lands on the desktop'], source: `GENTO style sample · ${NAME} · picture and sound generated in code`, pop: ['Export done', 'with soundtrack'], ok: 'OK' },
   },
-}[LANG];
+};
+const S = DICT[LANG];
+// 三语同屏测试：film.json 写 subs 时，每场带上其他语言的同一句
+const SUB = f => CFG.subs && CFG.subs.length ? { sub: Object.fromEntries(CFG.subs.map(l => [l, f(DICT[l])])) } : {};
 
 FILM({
   hud: { label: `GENTO · ${NAME} · SAMPLE` },
   scenes: [
-    ['open', 1, T.open({ words: S.words })],
-    ['poster', 1, T.poster(S.poster)],
+    ['open', 1, T.open({ words: S.words }), SUB(d => d.words.join(' · '))],
+    ['poster', 1, T.poster(S.poster), SUB(d => `${d.poster.kicker} ${d.poster.title} ${d.poster.tail}`)],
 
     ['c1', .5, T.chapter({ n: 1, total: 3, tag: S.step, title: S.c1, en: 'STEP' })],
     ['ask', 1.5, T.list({ meta: 'QUESTIONS', title: S.ask.title, items: S.ask.items, icons: ['star', 'play', 'doc', 'clock'] })],
-    ['rule', 1.5, T.quote(S.rule)],
+    ['rule', 1.5, T.quote(S.rule), SUB(d => d.rule.lead + d.rule.hit + (d === DICT.en ? ' ' : '') + d.rule.rest)],
 
     ['c2', .5, T.chapter({ n: 2, total: 3, tag: S.step, title: S.c2, en: 'STEP' })],
     ['swap', 1.5, T.compare({ left: S.swap.left, right: S.swap.right, mid: '×' })],
@@ -72,9 +75,9 @@ FILM({
     ['c3', .5, T.chapter({ n: 3, total: 3, tag: S.step, title: S.c3, en: 'STEP' })],
     ['flow', 1.5, T.steps({ title: S.flow.title, steps: S.flow.steps.map((label, i) => ({ label, icon: ['chat', 'doc', 'check', 'play'][i] })) })],
     ['once', 1.5, T.timeline({ title: S.once.title, events: S.once.events })],
-    ['talk', 1.5, T.talk({ lines: S.talk, accent: 1, hair: 'bob' })],
+    ['talk', 1.5, T.talk({ lines: S.talk, accent: 1, hair: 'bob' }), SUB(d => d.talk.join(' '))],
 
-    ['verdict', 1.5, T.verdict(S.verdict)],
+    ['verdict', 1.5, T.verdict(S.verdict), SUB(d => d.verdict.lead + ' ' + d.verdict.seal)],
     ['outro', 2, T.outro({
       lines: S.outro.lines, items: S.outro.items, itemsHead: 'HOW TO', source: S.outro.source,
       popup: { title: 'gento · render', lines: [S.outro.pop[0], `${W}×${H} · ${FPS} fps · ${S.outro.pop[1]}`], button: S.outro.ok },

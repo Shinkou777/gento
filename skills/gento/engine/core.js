@@ -92,6 +92,7 @@ function renderAt(t, mode) {
   const z = 1 + (STYLE.motion.push ?? .03) * (u / d); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
   if (mode === 'bg') STYLE.bg(ctx, u, d, t, sc.bg || {}); else sc.fn(ctx, u, d, t);
   ctx.restore(); resetCtx();
+  if (mode !== 'bg' && CFG.subs && CFG.subs.length && sc.sub) { STYLE.subs(ctx, u, d, t, sc); resetCtx(); }
   if (mode !== 'bg') STYLE.hud(ctx, t, sc, u, d);
   resetCtx();
   STYLE.post(ctx, t, sc);

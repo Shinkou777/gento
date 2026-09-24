@@ -25,7 +25,7 @@ FILM({
 | 模板 | 用途 | 主要参数 |
 |---|---|---|
 | `T.open` | 冷开场字卡，一拍一张 | `words: [4 个词]`，`per`（每张几拍），`label` |
-| `T.poster` | 片名海报 | `kicker` `title` `tail` `seal`（章上的字）`sub`（打字机副标题）`note` |
+| `T.poster` | 片名海报 | `kicker` `title` `tail` `seal`（章上的字）`sub`（打字机副标题）`note` `art`（横版时右边放主视觉，章挪到字下） |
 | `T.chapter` | 章节卡 | `n` `total` `tag` `title` `en` |
 | `T.quote` | 一句话三段：铺垫、重击词、收尾 | `meta` `lead` `hit` `rest` `mark`（rest 里要划重点的短语）`source` `art` `caption` `split` |
 | `T.number` | 大数字，数上去再砸下 | `value` `prefix` `suffix` `decimals` `from` `label` `note` `meta` `art` |
@@ -36,12 +36,25 @@ FILM({
 | `T.timeline` | 时间线 | `title` `events: [[日期, 文字]]` |
 | `T.talk` | 人物 + 对话气泡 | `lines: [两三句]` `accent`（第几句上强调色）`hair` `glasses` `sign` |
 | `T.verdict` | 结论：深色底、音乐停、盖章 | `lead` `seal` `tail` `tailSub` |
-| `T.outro` | 尾声 | `lines: [主句, 副句]` `items` `itemsHead` `source` `popup: { title, lines, button }` `figure` |
+| `T.outro` | 尾声 | `lines: [主句, 副句]` `items` `itemsHead` `source` `popup: { title, lines, button }` `figure`（false 时横版左边放主视觉 `art`） |
 | `T.custom` | 自己画 | `T.custom((ctx,u,d,t) => {...}, { cues(k,t0,d){}, imp: d => [[秒, 强度]], bg })` |
 
 `art` 可选：不写＝风格主视觉；`{ kind: 'tea' }` 指定主视觉变体；`{ icon: 'bulb' }` 大图标；`{ figure: { hair: 'bob' } }` 人物；函数 `(ctx,x,y,w,h,u,t) => {}` 自己画；`false` 不要图。
 
 图标名：bulb gear check cross clock chart user globe bolt heart leaf star money doc chat lock play flag。
+
+---
+
+## 三语同屏
+
+film.json 写 `"lang": "en", "subs": ["ja", "zh"]`：屏幕上的大字用 lang，底部一块淡底放副标，每种语言一行。每个场景在第四项给副标：
+
+```js
+const sub = (ja, zh) => ({ sub: { ja, zh } });
+['nike', 2, T.quote({...}), sub('勝利の女神ニケ……', '胜利女神尼刻……')],
+```
+
+副标占了底部字幕带，这种片子不要再用模板的 `caption`，尾声也别写 `source`（出处放进 `items`）。副标字体用风格包里各语言的 `sub` 角色，没有就用 `body`。
 
 ---
 

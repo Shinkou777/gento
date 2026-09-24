@@ -10,7 +10,7 @@ GENTO is a Claude Code skill that turns a brief into a short animated film with 
 
 ## Styles
 
-Eight style packs. Every scene template works in every style, format and language.
+Nine style packs. Every scene template works in every style, format and language.
 
 | Style | Look | Default music |
 |---|---|---|
@@ -22,14 +22,16 @@ Eight style packs. Every scene template works in every style, format and languag
 | `industrial` 工业渲染 | Studio-lit product render, brushed metal, turntable, exploded view, callouts | cinematic 100 |
 | `serene` 岁月静好 | Warm light, film grain, dust, text drifting in from a blur | piano 72 |
 | `explainer` 讲故事 | Flat illustration: bouncy shapes, icons, arrows, iris transitions | bright 108 |
+| `amphora` 希腊陶瓶 | Black- and red-figure pottery or marble: meander borders, laurels, Roman capitals, column bar charts | lyre 96 |
 
 | | | |
 |---|---|---|
 | ![Swiss](docs/gallery/swiss.jpg) | ![Glitch](docs/gallery/glitch.jpg) | ![Woodblock](docs/gallery/woodblock.jpg) |
 | ![Blueprint](docs/gallery/blueprint.jpg) | ![Industrial](docs/gallery/industrial.jpg) | ![Serene](docs/gallery/serene.jpg) |
-| ![Explainer](docs/gallery/explainer.jpg) | ![Riso 9:16 ja](docs/gallery/riso-9x16-ja.jpg) | ![Woodblock 9:16 ja](docs/gallery/woodblock-9x16-ja.jpg) |
+| ![Explainer](docs/gallery/explainer.jpg) | ![Amphora](docs/gallery/amphora.jpg) | ![Amphora, English with Japanese and Chinese subtitles](docs/gallery/amphora-trilingual.jpg) |
+| ![Riso 9:16 ja](docs/gallery/riso-9x16-ja.jpg) | ![Woodblock 9:16 ja](docs/gallery/woodblock-9x16-ja.jpg) | ![Explainer 9:16 en](docs/gallery/explainer-9x16-en.jpg) |
 
-Formats: 16:9, 9:16, 1:1, 4:5. Languages: Chinese, Japanese, English. Frame rates: 24, 30, 60.
+Formats: 16:9, 9:16, 1:1, 4:5. Languages: Chinese, Japanese, English, or one main language with the other two as on-screen subtitles. Frame rates: 24, 30, 60.
 
 ## Install
 
@@ -74,7 +76,7 @@ To restyle, change one field in `film.json` (style, palette, format, music) and 
 - **One clock.** Everything sits on the music's beat grid. Scenes are laid out in bars; each template schedules its picture, its sound effects and its camera hits against the same start time, so they cannot drift apart.
 - **Pure frames.** `renderAt(t)` draws any moment from `t` alone with seeded randomness, so playback, scrubbing and export produce identical frames.
 - **Style packs.** A style is a palette set, a font set per language and a small set of components (background, post-processing, title, hit, seal, marker, panel, caption, word card, chapter card, HUD, ornament). Scene templates call only these components.
-- **Synthesized score.** Ten music presets built from small instruments (kick, clap, 808, pads, e-piano, piano, marimba, koto, taiko, metal hits) with sidechain, a hand-written reverb and a soft clipper. Scenes ask for semantic sounds (`hit`, `seal`, `pop`, `ding`) and the preset decides the timbre.
+- **Synthesized score.** Eleven music presets built from small instruments (kick, clap, 808, pads, e-piano, piano, marimba, koto, taiko, metal hits, a Karplus-Strong plucked lyre) with sidechain, a hand-written reverb and a soft clipper. Scenes ask for semantic sounds (`hit`, `seal`, `pop`, `ding`) and the preset decides the timbre.
 - **Build.** `film.json` + `film.js` + engine + the chosen style are concatenated into one HTML file.
 - **Export.** Headless Chrome renders every frame, ffmpeg muxes it with the synthesized WAV.
 - **QA.** `scripts/check.js` fails the build on missing fonts, text outside the frame, overlapping text, hits without a sound and clipping audio, and warns on large empty areas, tiny text and silent gaps. `scripts/test.js --matrix` runs every style across formats and languages.

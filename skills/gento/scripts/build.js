@@ -21,13 +21,13 @@ function resolveConfig(dir) {
   const fmt = film.format || '16:9';
   if (!FORMATS[fmt]) throw new Error(`画幅只支持 ${Object.keys(FORMATS).join(' / ')}`);
   const [W, H] = FORMATS[fmt];
-  const lang = film.lang || 'zh';
+  const lang = film.lang || 'zh', subs = (film.subs || []).filter(l => l !== lang);
   const palette = film.palette || Object.keys(S.palettes)[0];
   if (!S.palettes[palette]) throw new Error(`${style} 没有色调 ${palette}（可选：${Object.keys(S.palettes).join(' / ')}）`);
   return {
     title: film.title || path.basename(dir), note: film.note || '', format: fmt, W, H,
-    fps: film.fps || 30, lang, style, palette, music: mus, bpm: film.bpm || music[mus].bpm, pace: film.pace || S.pace || 'standard', seed: film.seed || 4242,
-    fontsHref: 'https://fonts.googleapis.com/css2?' + [...new Set([...(S.fonts[lang] || S.fonts.zh), ...(S.fonts.common || [])])].map(f => 'family=' + f).join('&') + '&display=swap',
+    fps: film.fps || 30, lang, subs, style, palette, music: mus, bpm: film.bpm || music[mus].bpm, pace: film.pace || S.pace || 'standard', seed: film.seed || 4242,
+    fontsHref: 'https://fonts.googleapis.com/css2?' + [...new Set([...(S.fonts[lang] || S.fonts.zh), ...subs.flatMap(l => S.fonts[l] || []), ...(S.fonts.common || [])])].map(f => 'family=' + f).join('&') + '&display=swap',
   };
 }
 
