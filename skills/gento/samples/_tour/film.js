@@ -1,9 +1,9 @@
 // 风格样片：八种风格、三种语言共用这一份脚本，把每种场景模板都走一遍。
 // 时长按小节写，音乐 BPM 不同，片长跟着变。
 const NAMES = {
-  zh: { amphora: '希腊陶瓶', riso: '孔版', swiss: '瑞士网格', glitch: '故障霓虹', woodblock: '木版浮世绘', blueprint: '蓝图工程', industrial: '工业渲染', serene: '岁月静好', explainer: '讲故事', toon: '卡通波普' },
-  ja: { amphora: 'ギリシャの壺', riso: '孔版', swiss: 'スイス・グリッド', glitch: 'グリッチ・ネオン', woodblock: '木版浮世絵', blueprint: '青図', industrial: '工業レンダー', serene: '穏やかな日々', explainer: '解説アニメ', toon: 'カートゥーン・ポップ' },
-  en: { amphora: 'Amphora', riso: 'Riso', swiss: 'Swiss Grid', glitch: 'Glitch Neon', woodblock: 'Woodblock', blueprint: 'Blueprint', industrial: 'Industrial Render', serene: 'Serene', explainer: 'Explainer', toon: 'Toon Pop' },
+  zh: { amphora: '希腊陶瓶', riso: '孔版', swiss: '瑞士网格', glitch: '故障霓虹', woodblock: '木版浮世绘', blueprint: '蓝图工程', industrial: '工业渲染', serene: '岁月静好', explainer: '讲故事' },
+  ja: { amphora: 'ギリシャの壺', riso: '孔版', swiss: 'スイス・グリッド', glitch: 'グリッチ・ネオン', woodblock: '木版浮世絵', blueprint: '青図', industrial: '工業レンダー', serene: '穏やかな日々', explainer: '解説アニメ' },
+  en: { amphora: 'Amphora', riso: 'Riso', swiss: 'Swiss Grid', glitch: 'Glitch Neon', woodblock: 'Woodblock', blueprint: 'Blueprint', industrial: 'Industrial Render', serene: 'Serene', explainer: 'Explainer' },
 };
 const NAME = NAMES[LANG][CFG.style];
 const DICT = {

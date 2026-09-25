@@ -239,33 +239,5 @@
       ],
       "en": []
     }
-  },
-  "toon": {
-    "name": "卡通波普",
-    "desc": "美式卡通加日式夸张动画：粗黑描边、平涂、夕阳色带、放射线底、爆炸框，字砸进来会歪、会抖",
-    "palettes": {
-      "sunset": "夕阳橙紫",
-      "neon": "霓虹夜",
-      "noon": "正午暴晒"
-    },
-    "music": "turbo",
-    "pace": "fast",
-    "fonts": {
-      "common": [
-        "Bangers",
-        "IBM+Plex+Mono:wght@500;700"
-      ],
-      "zh": [
-        "ZCOOL+QingKe+HuangYou",
-        "Noto+Sans+SC:wght@500;900"
-      ],
-      "ja": [
-        "Dela+Gothic+One",
-        "Noto+Sans+JP:wght@500;900"
-      ],
-      "en": [
-        "Inter:wght@500;800"
-      ]
-    }
   }
 }
