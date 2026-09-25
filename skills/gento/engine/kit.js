@@ -113,6 +113,9 @@ function wrap(ctx, s, maxW, size, role, w) {
       const cand = line + tk;
       if (line && tw(ctx, cand.trimEnd(), size, role, w) > maxW && !NOHEAD.includes(tk[0])) {
         let carry = '';
+        // 行尾附近有标点就在标点后断，别把词劈开
+        const cut = Math.max(...[...'，、。；：！？,;:'].map(c => line.lastIndexOf(c)));
+        if (cut > 0 && cut >= line.length * .6 && cut < line.length - 1) { carry = line.slice(cut + 1); line = line.slice(0, cut + 1); }
         while (line && NOTAIL.includes(line[line.length - 1])) { carry = line[line.length - 1] + carry; line = line.slice(0, -1); }
         lines.push(line.trimEnd()); line = carry + tk.trimStart();
       } else line = cand;
@@ -214,6 +217,65 @@ const radial = (cx, cy, R, p = 1) => (x, y) => Math.pow(clamp(1 - Math.hypot(x -
 const linear = (x0, y0, x1, y1, p = 1) => { const dx = x1 - x0, dy = y1 - y0, L2 = dx * dx + dy * dy; return (x, y) => Math.pow(clamp(((x - x0) * dx + (y - y0) * dy) / L2), p); };
 // 四个角轮流：场景序号 → 光晕角
 const corner = i => [[W + 20, -20], [-20, H + 20], [W + 20, H + 20], [-20, -20]][((i % 4) + 4) % 4];
+
+/* ---------- 图片素材 ---------- */
+const IMGS = {};
+const IMG = n => IMGS[n] || null;
+function loadAssets() {
+  return Promise.all(Object.entries(ASSETS).map(([k, src]) => new Promise(res => { const im = new Image(); im.onload = () => { IMGS[k] = im; res(); }; im.onerror = () => res(); im.src = src; })));
+}
+// 铺满 r 的图。cam = { x, y, z }：x、y 是图上对准画框中心的点（0〜1），z 在铺满的基础上再放大
+function cover(ctx, img, r, cam = {}) {
+  if (!img) return;
+  const s = Math.max(r.w / img.width, r.h / img.height) * (cam.z || 1), dw = img.width * s, dh = img.height * s;
+  let x = r.x + r.w / 2 - (cam.x ?? .5) * dw, y = r.y + r.h / 2 - (cam.y ?? .5) * dh;
+  x = Math.min(r.x, Math.max(r.x + r.w - dw, x)); y = Math.min(r.y, Math.max(r.y + r.h - dh, y));
+  ctx.drawImage(img, x, y, dw, dh);
+}
+// 镜头路径：keys = [[进度 0〜1, x, y, z], ...]，段与段之间缓动
+function camAt(p, keys) {
+  if (!keys || !keys.length) return { x: .5, y: .5, z: 1 };
+  if (p <= keys[0][0]) return { x: keys[0][1], y: keys[0][2], z: keys[0][3] };
+  for (let i = 1; i < keys.length; i++) if (p <= keys[i][0]) { const a = keys[i - 1], b = keys[i], k = eIO((p - a[0]) / Math.max(1e-6, b[0] - a[0])); return { x: lerp(a[1], b[1], k), y: lerp(a[2], b[2], k), z: lerp(a[3], b[3], k) }; }
+  const l = keys[keys.length - 1]; return { x: l[1], y: l[2], z: l[3] };
+}
+// 抠好的雕像 / 器物：底边中点落在 (cx, by)，高 h。o.crop = [x0, y0, x1, y1] 只取原图一部分
+function cutImg(ctx, img, cx, by, h, o = {}) {
+  if (!img) return null;
+  const [x0, y0, x1, y1] = o.crop || [0, 0, 1, 1], sw = img.width * (x1 - x0), sh = img.height * (y1 - y0), w = sw * h / sh;
+  ctx.save();
+  if (o.shadow !== false) { const g = ctx.createRadialGradient(0, 0, 0, 0, 0, w * .62); g.addColorStop(0, 'rgba(20,12,6,.38)'); g.addColorStop(1, 'rgba(20,12,6,0)'); ctx.save(); ctx.translate(cx, by); ctx.scale(1, .16); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, w * .62, 0, 7); ctx.fill(); ctx.restore(); }
+  ctx.globalAlpha *= (o.alpha ?? 1);
+  ctx.drawImage(img, img.width * x0, img.height * y0, sw, sh, cx - w / 2, by - h, w, h);
+  ctx.restore();
+  return { x: cx - w / 2, y: by - h, w, h };
+}
+// 三语文字组：t = { en, ja, zh }。第一行用主语言的字体，另两行用各自语言的字体，字号相近、依次入场
+function triLines(ctx, t, o = {}) {
+  const order = o.order || [LANG, ...(CFG.subs || [])], size = o.size || 60 * U, maxW = o.maxW || L.cw * .5;
+  return order.filter(l => t[l]).map((l, i) => {
+    const role = l === LANG ? (o.role || F.head) : (FSUB[l] || F.body), w = l === LANG ? o.weight : (o.cjkWeight ?? o.weight);
+    const base = size * (l === LANG ? 1 : (o.cjk ?? .8));
+    // wrap：长句换行（最多 maxLines 行）而不是一味缩字
+    if (o.wrap) { const b = fitBlock(ctx, t[l], maxW, base * 1.3 * (o.maxLines || 2), base, role, { maxLines: o.maxLines || 2, min: base * .72, lh: 1.28, w }); return { l, s: t[l], role, w, sz: b.size, lines: b.lines, lh: b.lh, i, h: b.lines.length * b.lh }; }
+    const sz = fitText(ctx, t[l], maxW, base, role, w);
+    return { l, s: t[l], role, w, sz, lines: [t[l]], lh: sz, i, h: sz };
+  });
+}
+function triH(ctx, t, o = {}) { const ls = triLines(ctx, t, o); return ls.reduce((a, r, i) => a + r.h + (i < ls.length - 1 ? (o.gap ?? r.sz * .34) : 0), 0); }
+function tri(ctx, t, x, y, u, t0, o = {}) {
+  const ls = triLines(ctx, t, o), al = o.align || 'left', step = o.step ?? .12, g = ++QA.gid;
+  let yy = y;
+  ls.forEach((r, i) => {
+    const k = eOut(P(u, t0 + i * step, t0 + i * step + .4 * PACE.enter));
+    r.lines.forEach((ln, j) => {
+      const cy = yy + r.lh * (j + .5);
+      if (k > 0) text(ctx, ln, x + (1 - k) * 28 * U * (al === 'right' ? -1 : 1), cy, { size: r.sz, font: r.role, weight: r.w, align: al, color: i === 0 ? (o.color || C.fg) : (o.color2 || o.color || C.fg), alpha: k * (i === 0 ? 1 : (o.dim ?? .9)), glow: o.glow, glowR: o.glowR, g });
+    });
+    yy += r.h + (i < ls.length - 1 ? (o.gap ?? r.sz * .34) : 0);
+  });
+  return yy - y;
+}
 
 /* ---------- 人物（颜色全走 token） ---------- */
 // o: { t, hair:'curls'|'short'|'bob'|'none', glasses, look, brow, mouth:'smirk'|'o'|'grin'|'flat'|'frown'|'smile', smug, windy, flip, rot, plate }

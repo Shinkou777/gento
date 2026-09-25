@@ -47,6 +47,16 @@ if (args.includes('--matrix')) {
       await browser.close();
     }
   }
+  // 自带 film.js 的样片（真片子）也跑一遍
+  if (!pick.length) for (const d of fs.readdirSync(path.join(ROOT, 'samples'))) {
+    const dir = path.join(ROOT, 'samples', d);
+    if (!fs.existsSync(path.join(dir, 'film.js')) || !fs.existsSync(path.join(dir, 'film.json'))) continue;
+    const t0 = Date.now(), R = await check(dir);
+    console.log(`${R.fails.length ? 'FAIL' : 'ok  '}  ${('film:' + d).padEnd(22)} ${R.dur}s  提醒 ${R.warns.length}  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
+    for (const m of R.fails) console.log('      FAIL ' + m);
+    for (const m of R.warns) console.log('      WARN ' + m);
+    if (R.fails.length) failed++;
+  }
   fs.rmSync(tmp, { recursive: true, force: true });
   console.log(failed ? `\n${failed} 组不通过` : `\n全部通过（${cases.length} 组）`);
   process.exit(failed ? 1 : 0);

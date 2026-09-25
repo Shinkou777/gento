@@ -8,6 +8,7 @@ const FONT_LOADS = [...new Set([...Object.values(F), ...Object.values(FSUB)].fil
 const KEYS = SC.flatMap(s => [s.t0 + (s.t1 - s.t0) * .35, s.t0 + (s.t1 - s.t0) * .9]);
 const ready = (async () => {
   STYLE.textures();
+  await loadAssets();
   try {
     await Promise.race([Promise.all(FONT_LOADS.map(f => document.fonts.load(f, ALL_TEXT))), new Promise(r => setTimeout(r, 15000))]);
     await document.fonts.ready;
@@ -18,6 +19,7 @@ const ready = (async () => {
 // 质检接口：scripts/check.js 调用
 const qa = {
   voidTol: () => STYLE.voidTol ?? .25,
+  missingAssets: () => Object.keys(ASSETS).filter(k => !IMGS[k]),
   scenes: () => SC.map(s => ({ n: s.n, kind: s.kind, t0: s.t0, t1: s.t1, airy: !!s.airy })),
   boxes(t) { QA.on = true; QA.boxes = []; QA.gid = 0; try { renderAt(t); } finally { QA.on = false; } return QA.boxes.map(b => ({ ...b, x0: +b.x0.toFixed(1), y0: +b.y0.toFixed(1), x1: +b.x1.toFixed(1), y1: +b.y1.toFixed(1) })); },
   // 画完整帧和只画底的帧，逐格比，返回空白格与最大空白矩形占比

@@ -26,9 +26,9 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 | 题 | 选项 |
 |---|---|
 | 风格 | 按素材挑四个最合适的风格做选项，每个带 preview（色调、字、动作、默认音乐）。题干里列出全部风格名，写明「想要别的就在 Other 里写名字」。现有风格都不贴题时，可以把「新做一个风格」放进选项，选了就先照 extend.md 加风格包、过回归再出片 |
-| 画风 | 纯字排版 ／ 字配图形 ／ 角色叙事 ／ 数据图表 |
+| 画风 | 纯字排版 ／ 字配图形 ／ 角色叙事 ／ 数据图表 ／ 真品图片（雕像、名画、历史照片，讲历史文化时优先推荐） |
 | 画幅 | 16:9 横版 ／ 9:16 竖版 ／ 1:1 方版 ／ 4:5 |
-| 语言 | 中文 ／ 日文 ／ 英文。选了多种时再问：分几部各一种语言，还是一部片三语同屏（见 templates.md「三语同屏」） |
+| 语言 | 中文 ／ 日文 ／ 英文。选了多种时再问：分几部各一种语言、三语并排（每句三行成组，排进版面）、还是主语言加底部副标（见 templates.md） |
 
 **第二轮**（依赖第一轮的风格）
 
@@ -59,18 +59,19 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 ```
 
 1. **写 film.json**：`title` `style` `palette` `music` `format` `fps` `lang` `pace` `target`（目标秒数）。BPM 不写，跟音乐预设走。
-2. **写分镜 film.js**：用 `FILM({ scenes: [...] })`，场景按小节排。先读 `${CLAUDE_SKILL_DIR}/references/grammar.md` 和 `${CLAUDE_SKILL_DIR}/references/templates.md`。
+2. **需要图片时先备素材**：照 templates.md「图片素材」找图、查授权、抠图调色、登记到 film.json 的 assets。
+3. **写分镜 film.js**：用 `FILM({ scenes: [...] })`，场景按小节排。先读 `${CLAUDE_SKILL_DIR}/references/grammar.md` 和 `${CLAUDE_SKILL_DIR}/references/templates.md`。
    - 一小节的秒数＝240 ÷ BPM。片长 × BPM ÷ 240 ＝总小节数，照这个分配场景
    - 画风决定用哪些模板，节奏决定每场几小节，对照表在 templates.md
    - 屏幕上的字照 `~/.claude/CLAUDE.md` 的写作规则写；素材里没有的事实、数字、引语不写
-3. **质检**：`node ${CLAUDE_SKILL_DIR}/scripts/check.js <片源目录>`。有 FAIL 就改到没有；WARN 逐条看，能改就改。
-4. **看联系表**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --sheet --out <成品目录>`，用 Read 看图。自动质检看不出的：字色和底色对比、字的意思对不对、同一片里风格是否一致。查法见 `${CLAUDE_SKILL_DIR}/references/qa.md`。
-5. **导出**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。
-6. **交付**：`open` 成品目录。回复里写清：成品路径、片长和规格、用了哪些选择、自拟了哪些文案、质检结果、有没有没做到的。
+4. **质检**：`node ${CLAUDE_SKILL_DIR}/scripts/check.js <片源目录>`。有 FAIL 就改到没有；WARN 逐条看，能改就改。
+5. **看联系表**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --sheet --out <成品目录>`，用 Read 看图。自动质检看不出的：字色和底色对比、字的意思对不对、同一片里风格是否一致。查法见 `${CLAUDE_SKILL_DIR}/references/qa.md`。
+6. **导出**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。
+7. **交付**：`open` 成品目录。回复里写清：成品路径、片长和规格、用了哪些选择、自拟了哪些文案、质检结果、有没有没做到的。
 
 ## 三、改片
 
-用户说「换成××风格」「改成竖版」「节奏快一点」：只改 film.json 对应字段，重跑第 3〜5 步。场景用的是模板，换风格、换画幅不用重写分镜。
+用户说「换成××风格」「改成竖版」「节奏快一点」：只改 film.json 对应字段，重跑第 4〜6 步。场景用的是模板，换风格、换画幅不用重写分镜。
 
 改文案、改场景：改 film.js。
 

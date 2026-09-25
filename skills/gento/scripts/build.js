@@ -37,9 +37,17 @@ function build(dir, out) {
   const src = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
   const fj = JSON.parse(fs.readFileSync(path.join(dir, 'film.json'), 'utf8'));
   const filmJs = fs.readFileSync(fj.script ? path.resolve(dir, fj.script) : path.join(dir, 'film.js'), 'utf8');
+  // 图片素材：film.json 的 assets 表，内联进单文件 HTML
+  const MIME = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+  const assets = Object.fromEntries(Object.entries(fj.assets || {}).map(([k, f]) => {
+    const p = path.resolve(dir, f), ext = path.extname(p).slice(1).toLowerCase();
+    if (!MIME[ext]) throw new Error(`素材格式不支持：${f}（只收 jpg / png / webp）`);
+    return [k, `data:${MIME[ext]};base64,${fs.readFileSync(p).toString('base64')}`];
+  }));
   const script = [
     '(() => {',
     `const CFG = ${JSON.stringify(cfg)};`,
+    `const ASSETS = ${JSON.stringify(assets)};`,
     src('engine/core.js'), src('engine/kit.js'), src('engine/components.js'),
     src(`styles/${cfg.style}/style.js`),
     src('engine/resolve.js'), src('engine/synth.js'), src('music/presets.js'), src('scenes/library.js'),

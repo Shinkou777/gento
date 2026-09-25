@@ -480,7 +480,8 @@ T.verdict = (o) => ({
   kind: 'verdict', hud: false, flash: true, bg: { tone: 'dark' },
   fn(ctx, u, d, t) {
     STYLE.bg(ctx, u, d, t, this.bg);
-    if (o.lead) { const s = fitText(ctx, o.lead, L.cw, 130 * U, F.head); text(ctx, o.lead, W / 2, L.top + (TALL ? 120 : 100) * U, { size: s, font: F.head, color: C.onDark, alpha: P(u, 0, .12) }); }
+    if (o.lead && typeof o.lead === 'object') tri(ctx, o.lead, W / 2, L.top - 20 * U, u, 0, { size: 96 * U, maxW: L.cw, role: F.head, cjk: .62, align: 'center', color: C.onDark, gap: 12 * U });
+    else if (o.lead) { const s = fitText(ctx, o.lead, L.cw, 130 * U, F.head); text(ctx, o.lead, W / 2, L.top + (TALL ? 120 : 100) * U, { size: s, font: F.head, color: C.onDark, alpha: P(u, 0, .12) }); }
     const sz = Math.min(320 * U, (L.cw * .92) / (chars(o.seal) + .9));
     STYLE.seal(ctx, o.seal, W / 2, H / 2 + (TALL ? 0 : 70 * U), P(u, 2 * BT, 2 * BT + .11), { size: sz, rot: -.07, mul: false, dark: true });
     if (o.tail && u > 4 * BT) {
@@ -549,6 +550,161 @@ T.outro = (o) => {
     },
     cues(k, t0) { k.pop(t0 + .15, 1); if (o.items) { k.swish(t0 + 2 * BT - .1, .3, .7); o.items.forEach((_, i) => { k.tick(t0 + 2.5 * BT + i * BT / 2, 1); k.type(t0 + 2.5 * BT + i * BT / 2 + .03, .8); }); } if (o.popup) { k.ding(t0 + tPop, 1318.5, .9); k.pop(t0 + tPop, .8); } },
     imp: d => o.popup ? [[tPop, 1]] : [],
+  };
+};
+
+/* ---------- 雕像：抠好的雕像立在一个大词前面，三语文字在另一侧 ---------- */
+// o: { img, crop, big（雕像后面的大词）, title: {en,ja,zh}, body: {en,ja,zh}, credit, side: 'right'|'left', scale }
+T.statue = (o) => {
+  let lay;
+  const side = o.side || 'right';
+  const layout = ctx => {
+    const colW = WIDE ? W * .42 : L.cw, cx = WIDE ? (side === 'right' ? W * .72 : W * .28) : W / 2;
+    const sh = WIDE ? H * (o.scale ?? .9) : H * (o.scale ?? .5), by = WIDE ? H - 26 * U : H - 40 * U;
+    const bigSz = o.big ? fitText(ctx, o.big, WIDE ? W * .44 : W * .92, (o.bigSize || 480) * U, F.latin) : 0;
+    const bigY = WIDE ? H * .5 : by - sh * .62;
+    const region = WIDE ? { y: L.top - 40 * U, h: L.ch + 80 * U } : { y: L.top - 20 * U, h: Math.max(200 * U, by - sh - L.top) };
+    let T1, T2, th, bh, items;
+    // 整组放不下就一起缩
+    for (let f = 1; ; f *= .92) {
+      T1 = { size: (o.titleSize || 84) * U * f, maxW: colW, role: F.head, cjk: .74, wrap: true, maxLines: 2 }; T2 = { size: 46 * U * Math.max(f, .8), maxW: colW, role: F.body, cjk: .82, wrap: true, maxLines: 2, gap: 18 * U };
+      th = o.title ? triH(ctx, o.title, T1) : 0; bh = o.body ? triH(ctx, o.body, T2) : 0;
+      items = [{ h: th }, { h: o.body ? 6 * U : 0, gap: 34 * U }, { h: bh, gap: 34 * U }, { h: o.credit ? 26 * U : 0, gap: 40 * U }];
+      if (stackH(items) <= region.h || f < .5) break;
+    }
+    const ys = stackY(region, items);
+    const tx = WIDE ? (side === 'right' ? L.left : W - L.m - colW) : L.left;
+    return { colW, cx, sh, by, bigSz, bigY, T1, T2, tx, ys, th, bh };
+  };
+  return {
+    kind: o.kind || 'content', hud: o.hud, bg: { tone: o.tone || 'base', deco: o.deco ?? 0 },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      const fg = onTone(this.bg.tone);
+      STYLE.bg(ctx, u, d, t, this.bg);
+      if (o.big) STYLE.hit(ctx, o.big, lay.cx, lay.bigY, u, BT, { size: lay.bigSz, font: F.latin, align: 'center', color: accentOn(this.bg.tone, o.bigColor || C.a1), g: 'big', over: true });
+      const k = eOut(P(u, 0, .7 * PACE.enter)), push = 1 + .05 * (u / d);
+      ctx.save(); ctx.globalAlpha = k; cutImg(ctx, IMG(o.img), lay.cx, lay.by + (1 - k) * 60 * U, lay.sh * push, { crop: o.crop }); ctx.restore();
+      const x = lay.tx;
+      if (o.title) tri(ctx, o.title, x, lay.ys[0] - lay.th / 2, u, 1.5 * BT, { ...lay.T1, color: fg });
+      if (o.body) { ctx.fillStyle = C.a1; ctx.fillRect(x, lay.ys[1] - 3 * U, 140 * U * eOut(P(u, 2.2 * BT, 2.2 * BT + .4)), 3 * U); tri(ctx, o.body, x, lay.ys[2] - lay.bh / 2, u, 2.5 * BT, { ...lay.T2, color: fg }); }
+      if (o.credit && u > 3.2 * BT) text(ctx, o.credit, x, lay.ys[3], { size: 22 * U, font: F.mono, align: 'left', color: C.muted, alpha: P(u, 3.2 * BT, 3.2 * BT + .3), meta: true });
+    },
+    cues(k, t0) { k.pop(t0 + .1, .6); k.hit(t0 + BT, 1); k.tick(t0 + 1.5 * BT, .8); k.note(t0 + 1.5 * BT, 4); k.tick(t0 + 2.5 * BT, .7); k.note(t0 + 2.5 * BT, 2); },
+    imp: d => [[BT, 1], [1.5 * BT, .3]],
+  };
+};
+
+/* ---------- 名画：整屏铺满，镜头沿路径推移，三语文字压在一侧的暗角上 ---------- */
+// o: { img, cam: [[进度, x, y, z], ...], side: 'left'|'right', head: {en,ja,zh}, body: {en,ja,zh}, credit }
+T.plate = (o) => {
+  let lay;
+  const side = o.side || 'left';
+  const layout = ctx => {
+    const colW = WIDE ? W * .38 : L.cw;
+    const H1 = { size: 150 * U, maxW: colW, role: F.latin, cjk: .5 }, H2 = { size: 44 * U, maxW: colW, role: F.body, cjk: .82, wrap: true, maxLines: 3, gap: 18 * U };
+    const hh = o.head ? triH(ctx, o.head, H1) : 0, bh = o.body ? triH(ctx, o.body, H2) : 0;
+    const items = [{ h: hh }, { h: bh, gap: 44 * U }];
+    const region = WIDE ? { y: L.top, h: L.ch } : { y: H * .56, h: L.bot - H * .56 };
+    const ys = stackY(region, items);
+    const tx = WIDE ? (side === 'left' ? L.left : W - L.m - colW) : L.left;
+    return { colW, H1, H2, hh, bh, ys, tx };
+  };
+  return {
+    kind: o.kind || 'content', hud: o.hud, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      field(ctx, C.dark);
+      cover(ctx, IMG(o.img), { x: -10, y: -10, w: W + 20, h: H + 20 }, camAt(u / d, o.cam || [[0, .5, .5, 1.05], [1, .5, .5, 1.18]]));
+      // 暗角：文字那一侧压暗
+      const g = WIDE ? ctx.createLinearGradient(side === 'left' ? 0 : W, 0, side === 'left' ? W * .66 : W * .34, 0) : ctx.createLinearGradient(0, H, 0, H * .38);
+      g.addColorStop(0, tint(C.dark, 1, .9)); g.addColorStop(.55, tint(C.dark, 1, .55)); g.addColorStop(1, tint(C.dark, 1, 0));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const x = lay.tx, fg = C.onDark;
+      if (o.head) {
+        const ls = triLines(ctx, o.head, lay.H1);
+        STYLE.hit(ctx, ls[0].s, x, lay.ys[0] - lay.hh / 2 + ls[0].sz / 2, u, BT, { size: ls[0].sz, font: ls[0].role, color: accentOn('dark', o.headColor || C.a1), g: 'head' });
+        const rest = Object.fromEntries(Object.entries(o.head).filter(([l]) => l !== LANG));
+        tri(ctx, rest, x, lay.ys[0] - lay.hh / 2 + ls[0].sz + (lay.H1.gap ?? ls[0].sz * .34), u, 1.4 * BT, { ...lay.H1, size: ls[0].sz * (lay.H1.cjk || .5), cjk: 1, color: fg });
+      }
+      if (o.body) tri(ctx, o.body, x, lay.ys[1] - lay.bh / 2, u, 2.2 * BT, { ...lay.H2, color: fg });
+      if (o.credit && u > 3 * BT) {
+        const cx = WIDE ? (side === 'left' ? W - L.m * .55 : L.m * .55) : L.left, al = WIDE && side === 'left' ? 'right' : 'left';
+        text(ctx, o.credit, cx, H - 44 * U, { size: 22 * U, font: F.mono, align: al, color: C.onDark, alpha: .8 * P(u, 3 * BT, 3 * BT + .3), meta: true, shadow: 'rgba(0,0,0,.6)', sdx: 0, sdy: 2 });
+      }
+    },
+    cues(k, t0, d) { k.swish(t0 + .05, .6, .35); k.hit(t0 + BT, .9); k.tick(t0 + 1.4 * BT, .6); k.note(t0 + 2.2 * BT, 3); },
+    imp: d => [[BT, .8]],
+  };
+};
+
+/* ---------- 快切：一拍一张图，大字压在画面上 ---------- */
+// o: { items: [{ img, cam, cut（抠图就写 true）, head: {en,ja,zh}, credit }], per（每张几拍）, center, kind }
+T.montage = (o) => {
+  const per = (o.per || 1) * BT, n = o.items.length;
+  return {
+    kind: o.kind || 'content', hud: false, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      const i = Math.min(n - 1, Math.floor(u / per)), it = o.items[i], ui = u - i * per, p = clamp(ui / per);
+      field(ctx, C.dark);
+      if (it.cut) { STYLE.bg(ctx, u, d, t, { tone: it.tone || 'base', deco: i }); cutImg(ctx, IMG(it.img), W / 2 + (it.dx || 0) * W, H - 30 * U, H * (it.scale || .86) * (1 + p * .04), { crop: it.crop }); }
+      else cover(ctx, IMG(it.img), { x: -10, y: -10, w: W + 20, h: H + 20 }, camAt(p, it.cam || [[0, .5, .5, 1.08], [1, .5, .5, 1.2]]));
+      if (o.center) { ctx.fillStyle = tint(C.dark, 1, .45); ctx.fillRect(0, 0, W, H); }
+      else { const g = ctx.createLinearGradient(0, H, 0, H * .35); g.addColorStop(0, tint(C.dark, 1, .88)); g.addColorStop(1, tint(C.dark, 1, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+      if (it.head) {
+        const big = o.center ? 360 * U : 150 * U, opt = { size: big, maxW: o.center ? W * .8 : W * .7, role: F.latin, cjk: o.center ? .26 : .42, align: o.center ? 'center' : 'left', gap: big * .12 };
+        const h = triH(ctx, it.head, opt), x = o.center ? W / 2 : L.left, y0 = o.center ? H / 2 - h / 2 : L.bot + 40 * U - h;
+        const ls = triLines(ctx, it.head, opt), sc = slamS(ui, 0, 1.12, .12);
+        ctx.save(); ctx.translate(x, y0 + ls[0].sz / 2); ctx.scale(sc, sc); text(ctx, ls[0].s, 0, 0, { size: ls[0].sz, font: ls[0].role, align: opt.align, color: C.onDark, g: 'mh' + i }); ctx.restore();
+        const rest = Object.fromEntries(Object.entries(it.head).filter(([l]) => l !== LANG));
+        tri(ctx, rest, x, y0 + ls[0].sz + opt.gap, ui, .08, { ...opt, size: ls[0].sz * opt.cjk, cjk: 1, color: C.onDark, step: .06 });
+      }
+      if (it.credit) text(ctx, it.credit, W - L.m * .55, H - 40 * U, { size: 20 * U, font: F.mono, align: 'right', color: C.onDark, alpha: .75, meta: true });
+    },
+    cues(k, t0) { o.items.forEach((_, i) => { k.pop(t0 + i * per, .7); k.note(t0 + i * per, i * 2); }); },
+    imp: d => o.items.map((_, i) => [i * per, .5]),
+  };
+};
+
+/* ---------- 作品与出处：缩略图一排 + 出处清单 ---------- */
+// o: { title: {en,ja,zh}, items: [{ img, credit }], note: {en,ja,zh} }
+T.credits = (o) => {
+  let lay;
+  const n = o.items.length;
+  const layout = ctx => {
+    const th = triH(ctx, o.title, { size: 64 * U, maxW: L.cw, role: F.head, cjk: .7 });
+    const cols = WIDE ? Math.min(n, 10) : Math.min(n, 5), tw_ = (L.cw - (cols - 1) * 16 * U) / cols, thH = Math.min(tw_ * 1.25, (WIDE ? 230 : 260) * U);
+    const rows = Math.ceil(n / cols), lines = o.items.map((it, i) => `${pad2(i + 1)}  ${it.credit}`), lh = 30 * U;
+    const longest = Math.max(...lines.map(s => tw(ctx, s, 21 * U, F.mono))), listCols = WIDE && longest < (L.cw - 40 * U) / 2 ? 2 : 1;
+    return { th, cols, tw_, thH, rows, listCols, lines, lh };
+  };
+  return {
+    kind: 'outro', hud: false, bg: { tone: o.tone || 'base', deco: 1 },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      STYLE.bg(ctx, u, d, t, this.bg);
+      const fg = onTone(this.bg.tone);
+      tri(ctx, o.title, W / 2, L.top - 30 * U, u, 0, { size: 64 * U, maxW: L.cw, role: F.head, cjk: .7, align: 'center', color: fg });
+      const y0 = L.top - 30 * U + lay.th + 40 * U;
+      o.items.forEach((it, i) => {
+        const r = Math.floor(i / lay.cols), c = i % lay.cols, x = L.left + c * (lay.tw_ + 16 * U), y = y0 + r * (lay.thH + 16 * U), k = eBack(P(u, .3 + i * BT * .25, .3 + i * BT * .25 + .3));
+        if (k <= 0) return;
+        ctx.save(); ctx.translate(x + lay.tw_ / 2, y + lay.thH / 2); ctx.scale(k, k); ctx.translate(-(x + lay.tw_ / 2), -(y + lay.thH / 2));
+        ctx.fillStyle = C.dark; ctx.fillRect(x, y, lay.tw_, lay.thH);
+        ctx.save(); ctx.beginPath(); ctx.rect(x, y, lay.tw_, lay.thH); ctx.clip();
+        const im = IMG(it.img); if (im) { if (it.cut) { STYLE.bg(ctx, 0, 1, 0, { tone: 'alt', plain: true }); cutImg(ctx, im, x + lay.tw_ / 2, y + lay.thH - 6 * U, lay.thH * .9, { shadow: false }); } else cover(ctx, im, { x, y, w: lay.tw_, h: lay.thH }, it.cam || {}); }
+        ctx.restore(); ctx.lineWidth = 2 * U; ctx.strokeStyle = C.line; ctx.strokeRect(x, y, lay.tw_, lay.thH); ctx.restore();
+      });
+      const ly = y0 + lay.rows * (lay.thH + 16 * U) + 30 * U, per = Math.ceil(n / lay.listCols), colW = (L.cw - 40 * U) / lay.listCols;
+      lay.lines.forEach((s, i) => {
+        const c = Math.floor(i / per), r = i % per, a = P(u, BT * 2 + i * .08, BT * 2 + i * .08 + .3); if (a <= 0) return;
+        const sz = fitText(ctx, s, colW - 10 * U, 21 * U, F.mono, undefined, 14 * U);
+        text(ctx, s, L.left + c * (colW + 40 * U), ly + r * lay.lh, { size: sz, font: F.mono, align: 'left', color: fg, alpha: a, meta: true });
+      });
+      if (o.note) tri(ctx, o.note, W / 2, Math.min(H - 150 * U, ly + per * lay.lh + 20 * U), u, BT * 3, { size: 26 * U, maxW: L.cw, role: F.body, cjk: .92, align: 'center', color: C.muted, gap: 6 * U });
+    },
+    cues(k, t0) { o.items.forEach((_, i) => k.pop(t0 + .3 + i * BT * .25, .5)); k.ding(t0 + BT * 2, 2349.3, .6); },
+    imp: d => [],
   };
 };
 

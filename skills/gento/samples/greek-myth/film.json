@@ -1,0 +1,28 @@
+{
+  "title": "Words from the Gods",
+  "note": "希腊神话科普 · 英日中三语并排 · 画面用博物馆开放馆藏与公有领域名画（出处见片尾）· 文案按古典文献自拟 · 画面与配乐由代码生成",
+  "style": "amphora",
+  "palette": "marble",
+  "music": "lyre",
+  "format": "16:9",
+  "fps": 60,
+  "lang": "en",
+  "subs": [
+    "ja",
+    "zh"
+  ],
+  "pace": "standard",
+  "target": 45,
+  "assets": {
+    "nike": "assets/nike.webp",
+    "pan": "assets/pan.webp",
+    "atlas": "assets/atlas.webp",
+    "vase": "assets/vase.webp",
+    "muses": "assets/muses.webp",
+    "echo": "assets/echo.jpg",
+    "achilles": "assets/achilles.jpg",
+    "narcissus": "assets/narcissus.jpg",
+    "tantalus": "assets/tantalus.jpg",
+    "odysseus": "assets/odysseus.jpg"
+  }
+}

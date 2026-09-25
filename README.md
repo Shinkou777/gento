@@ -4,7 +4,7 @@
 
 幻燈是一个 Claude Code skill：给一段素材，用代码做出带配乐的动画短片。
 
-GENTO is a Claude Code skill that turns a brief into a short animated film with its own soundtrack. Every frame is drawn on a canvas and every note is synthesized in code; there is no footage, no image asset and no audio sample. Type `/gento` plus your brief, answer a few multiple-choice questions, and an MP4 lands on your desktop.
+GENTO is a Claude Code skill that turns a brief into a short animated film with its own soundtrack. Every frame is drawn on a canvas and every note is synthesized in code; there is no audio sample. Films can be pure motion graphics, or built around public-domain artworks (museum statues, paintings) that GENTO cuts out, color-grades and moves a camera across. Type `/gento` plus your brief, answer a few multiple-choice questions, and an MP4 lands on your desktop.
 
 ![Riso](docs/gallery/riso.jpg)
 
@@ -31,7 +31,9 @@ Nine style packs. Every scene template works in every style, format and language
 | ![Explainer](docs/gallery/explainer.jpg) | ![Amphora](docs/gallery/amphora.jpg) | ![Amphora, English with Japanese and Chinese subtitles](docs/gallery/amphora-trilingual.jpg) |
 | ![Riso 9:16 ja](docs/gallery/riso-9x16-ja.jpg) | ![Woodblock 9:16 ja](docs/gallery/woodblock-9x16-ja.jpg) | ![Explainer 9:16 en](docs/gallery/explainer-9x16-en.jpg) |
 
-Formats: 16:9, 9:16, 1:1, 4:5. Languages: Chinese, Japanese, English, or one main language with the other two as on-screen subtitles. Frame rates: 24, 30, 60.
+Scene templates for artwork: `T.statue` (a cut-out statue standing in front of a giant word), `T.plate` (a full-bleed painting with a camera path), `T.montage` (beat-synced cuts) and `T.credits` (thumbnails plus sources). `scripts/prep_art.py` cuts out and color-grades the images. See `samples/greek-myth`.
+
+Formats: 16:9, 9:16, 1:1, 4:5. Languages: Chinese, Japanese, English, three languages set side by side, or one main language with the other two as subtitles. Frame rates: 24, 30, 60.
 
 ## Install
 

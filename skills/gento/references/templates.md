@@ -37,6 +37,10 @@ FILM({
 | `T.talk` | 人物 + 对话气泡 | `lines: [两三句]` `accent`（第几句上强调色）`hair` `glasses` `sign` |
 | `T.verdict` | 结论：深色底、音乐停、盖章 | `lead` `seal` `tail` `tailSub` |
 | `T.outro` | 尾声 | `lines: [主句, 副句]` `items` `itemsHead` `source` `popup: { title, lines, button }` `figure`（false 时横版左边放主视觉 `art`） |
+| `T.statue` | 抠好的雕像 / 器物立在一个大词前面，三语文字在另一侧 | `img` `crop` `big`（雕像后的大词）`title` `body`（三语对象）`credit` `side` `scale` `titleSize` |
+| `T.plate` | 名画整屏铺满，镜头沿路径推移，文字压在一侧暗角上 | `img` `cam: [[进度, x, y, z], ...]` `side` `head` `body`（三语对象）`credit` |
+| `T.montage` | 一拍一张图快切，大字压在画面上 | `items: [{ img, cam, cut, crop, scale, head, credit }]` `per` `center` `kind` |
+| `T.credits` | 作品缩略图一排 + 出处清单 | `title` `items: [{ img, cut, credit }]` `note`（都可三语） |
 | `T.custom` | 自己画 | `T.custom((ctx,u,d,t) => {...}, { cues(k,t0,d){}, imp: d => [[秒, 强度]], bg })` |
 
 `art` 可选：不写＝风格主视觉；`{ kind: 'tea' }` 指定主视觉变体；`{ icon: 'bulb' }` 大图标；`{ figure: { hair: 'bob' } }` 人物；函数 `(ctx,x,y,w,h,u,t) => {}` 自己画；`false` 不要图。
@@ -58,6 +62,24 @@ const sub = (ja, zh) => ({ sub: { ja, zh } });
 
 ---
 
+## 图片素材（雕像、名画、照片）
+
+1. 找图：优先博物馆开放馆藏（大都会 collectionapi.metmuseum.org、芝加哥美术馆 api.artic.edu，`isPublicDomain` / CC0）和维基共享资源里标公有领域或 CC0 的文件。CC BY-SA 的不用（成片会被要求同样授权）。作品名、作者、年代、馆藏逐条查实，写进出处
+2. 处理：`python3 scripts/prep_art.py 原图 输出 --cutout --grade marble`。雕像、器物加 `--cutout` 抠图；统一调色用 `--grade`（预设 marble / terracotta / redfigure / sepia / ink，或逗号分隔的色值）；底下带展台就先 `--crop` 裁掉。抠图要 rembg（本机用 `~/.venvs/snscover/bin/python`）
+3. 透明图转 WebP、照片存 JPG，整片素材控制在 5MB 左右
+4. film.json 登记：`"assets": { "nike": "assets/nike.webp" }`，构建时内联进 HTML；场景里用 `img: 'nike'`
+5. 镜头：`cam` 的 x、y 是图上要对准画框中心的点。一侧放字时，把焦点往字的反方向偏（偏移约 0.25 ÷ 放大倍数），主体就落在留白那半边。先给图加坐标网格看准位置再写
+
+示例见 `samples/greek-myth/`。
+
+---
+
+## 三语并排
+
+film.json 写 `"lang": "en", "subs": ["ja", "zh"]` 加载三种语言的字体，场景里的文字写成 `{ en, ja, zh }` 对象，用 `T.statue` / `T.plate` / `T.montage` / `T.credits` / `T.verdict`（lead）排成三行一组。这和「三语同屏副标」是两回事：并排不给场景写 `sub`。
+
+---
+
 ## 画风 → 模板
 
 | 画风 | 主要用 | 写法 |
@@ -65,6 +87,7 @@ const sub = (ja, zh) => ({ sub: { ja, zh } });
 | 纯字排版 | open、poster、quote、number、list、verdict | quote 和 number 加 `split: 1, art: false`，字占满版心 |
 | 字配图形 | quote、number、steps、bars、timeline | 默认写法，右侧/下方是风格主视觉 |
 | 角色叙事 | talk、quote（`art: { figure }`）、outro | 同一个人物反复出场，发型衣服保持一致 |
+| 真品图片 | statue、plate、montage、credits | 雕像抠图立在大词前，名画整屏加镜头，片尾列作品出处 |
 | 数据图表 | number、bars、compare、timeline | 数字写出处 |
 
 ---

@@ -27,6 +27,7 @@ async function check(dir) {
     });
     for (const b of sweep.bad) fail(`渲染报错 ${b}`);
     R.notes.unshift(`扫帧 ${sweep.n} 帧`);
+    for (const m of await page.evaluate(() => window.__film.qa.missingAssets())) fail(`图片没加载：${m}`);
     const fonts = await page.evaluate(() => window.__film.qa.fonts());
     for (const f of fonts) if (!f.ok) fail(`字体没加载：${f.role}（${f.font}）`);
     const scenes = await page.evaluate(() => window.__film.qa.scenes());
