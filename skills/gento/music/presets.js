@@ -9,6 +9,7 @@ const CH = {
   Dm: [73.42, [146.83, 174.61, 220]], E: [82.41, [164.81, 207.65, 246.94]], Em: [82.41, [164.81, 196, 246.94]], Bb: [116.54, [174.61, 233.08, 293.66]],
   Fmaj7: [87.31, [174.61, 220, 261.63, 329.63]], Em7: [82.41, [164.81, 196, 246.94, 293.66]], Dm7: [73.42, [146.83, 174.61, 220, 261.63]], Cmaj7: [130.81, [196, 246.94, 261.63, 329.63]],
   Am7: [110, [196, 220, 261.63, 329.63]], G6: [98, [196, 246.94, 293.66, 329.63]],
+  D: [73.42, [146.83, 185, 220]], B: [61.74, [123.47, 155.56, 185]],
 };
 const P_ = (...names) => names.map(n => CH[n]);
 const inRange = (t, rs) => rs && rs.some(([a, b]) => t >= a - 1e-6 && t < b - 1e-6);
@@ -321,6 +322,82 @@ const MUSIC = {
   }),
 
   // 里拉琴：Karplus-Strong 拨弦、框鼓、簧管低音持续音，D 多利亚调式。希腊陶瓶的默认
+  // 高速电子摇滚：失真强力和弦、八分音符贝斯、军鼓连打，冲线后急停，搞笑处用弹簧声
+  turbo: preset({
+    prog: P_('Em', 'C', 'D', 'B'), darkProg: P_('Em', 'C', 'Am', 'B'), room: .8, drive: .68,
+    scale: [329.63, 392, 440, 493.88, 587.33, 659.25, 783.99, 880],
+    // 失真吉他味：根音、五度、八度三层锯齿，过饱和再低通；mute 是闷音短促
+    gtr(k, t0, f, len, g = 1, mute = false) {
+      for (const [ff, det, pan] of [[f, -.004, -.6], [f * 1.4983, .003, .6], [f * 2, 0, 0]]) {
+        let ph = Math.abs(k.rnd()); const flt = new k.SVF();
+        k.add(t0, len, x => { ph = (ph + ff * (1 + det) / SR) % 1; const v = Math.tanh((2 * ph - 1) * 3.4); const e = mute ? Math.exp(-x * 16) : Math.min(1, x * 300) * Math.min(1, (len - x) * 25); return flt.run(v, mute ? 1300 : 2600, .7).lp * e * .085; }, { g, pan, rv: .12, duck: true });
+      }
+    },
+    fill(k, t0, g = 1) { for (let j = 0; j < 4; j++) k.snare(t0 + j * BT / 4, g * (.55 + j * .15), { fc: 3000 }); k.tom(t0 + BT * .5, 140, g * .6); k.tom(t0 + BT * .75, 100, g * .7); },
+    sfx(k) {
+      const M_ = MUSIC.turbo;
+      return {
+        hit: (t, g = 1) => { k.kick(t, 1.3 * g); M_.gtr(k, t, 82.41, .5, g * 1.2); k.noiseHit(t, .25, 2200, g * .8); k.crash(t, g * .5); },
+        seal: (t, g = 1) => { k.slam(t, g); M_.gtr(k, t, 82.41, 1.1, g * 1.3); k.crash(t, g * .9); },
+        pop: (t, g = 1) => { k.pop(t, g * .8); k.boing(t + .01, g * .45); },
+        tick: (t, g = 1) => k.rim(t, g),
+        ding: (t, f = 1318.5, g = 1) => k.bell(t, f, g * .8, 1),
+        swish: (t, len = .3, g = .6) => k.whoosh(t, len * .9, g),
+        note: (t, i = 0, g = 1) => k.pluck(t, M_.scale[((i % 8) + 8) % 8], g * 1.6, .25),
+      };
+    },
+    intro(k, t0, d) {
+      // 起跑前：闷音吉他八分音符渐强，底鼓四拍，最后一小节军鼓加花，全程一道上扬
+      const n = Math.round(d / BT);
+      for (let i = 0; i < n; i++) {
+        const t = t0 + i * BT, [root] = this.prog[Math.floor(i / 4) % 4], kk = .5 + .5 * i / n;
+        k.kick(t, .9); if (i % 2) k.snare(t, .5 * kk, { fc: 3000 });
+        for (let j = 0; j < 2; j++) this.gtr(k, t + j * BT / 2, root, BT * .45, .8 * kk, true);
+        k.hat(t + BT / 2, .6);
+      }
+      this.fill(k, t0 + d - BT, 1);
+      k.riser(t0 + d * .4, d * .6, .7);
+    },
+    // 倒数：只剩底鼓和心跳般的闷音，军鼓越打越密
+    poster(k, t0, d) {
+      const n = Math.round(d / BT);
+      for (let i = 0; i < n; i++) { const t = t0 + i * BT; k.kick(t, 1); this.gtr(k, t, 82.41, BT * .4, .9, true); }
+      for (let j = 0, t = t0 + d / 2; t < t0 + d - 1e-6; j++, t += BT / 4) k.snare(t, .4 + .6 * (t - t0 - d / 2) / (d / 2), { fc: 3200 });
+      k.riser(t0, d, .8);
+    },
+    chapter(k, t0) { k.crash(t0, 1); this.gtr(k, t0, 82.41, .8, 1.2); k.slam(t0, .6); },
+    // 急停：唱片刹车，只留一记低音
+    stop(k, t0, d) { let ph = 0; k.add(t0, .5, x => { ph += 2 * Math.PI * (320 * (1 - x * 1.8) + 30) / SR; return Math.tanh(Math.sin(ph) * 3) * (1 - x * 2) * .25; }, { g: 1 }); k.sub(t0 + .05, 41.2, .8, 1); },
+    outro(k, t0, d) {
+      const n = Math.round(d / BT), mel = [659.25, 587.33, 493.88, 440, 493.88, 587.33, 659.25, 783.99];
+      for (let i = 0; i < n; i++) { const t = t0 + i * BT; if (i % 2 === 0) k.kick(t, .5); if (i % 4 === 2) k.snare(t, .35, { fc: 3000 }); if (i % 2 === 0) k.pluck(t, mel[(i / 2) % mel.length], 1.3, .45, .2); }
+      k.pad(t0, [164.81, 246.94, 329.63], d, .7, { cut: .014 });
+      this.gtr(k, t0 + d - 2 * BT, 82.41, 2 * BT, .9);
+    },
+    groove(k, from, to, o) {
+      for (let bt = Math.round(from / BT); bt < Math.round(to / BT); bt++) {
+        const t0 = bt * BT, bar = Math.floor(bt / 4), ib = bt % 4, hot = inRange(t0, o.hot), dark = inRange(t0, o.dark), calm = inRange(t0, o.calm);
+        const [root, tones] = (dark ? this.darkProg : this.prog)[bar % 4];
+        if (calm) {
+          // 平静段：弹拨和弦、轻镲，底鼓只在一拍
+          if (ib === 0) { k.kick(t0, .7); k.pad(t0, tones, BAR, .6, { cut: .016 }); }
+          k.hat(t0 + BT / 2, .5); k.pluck(t0, tones[(bt) % tones.length] * 2, 1.1, .3, .2);
+          if (ib === 2) k.snare(t0, .35, { fc: 3000 });
+          continue;
+        }
+        k.kick(t0, ib === 0 || ib === 2 ? 1.05 : 0); if (ib === 1 && hot) k.kick(t0 + BT / 2, .8);
+        if (ib === 1 || ib === 3) k.snare(t0, 1, { fc: 3000 });
+        for (let j = 0; j < (hot ? 4 : 2); j++) k.hat(t0 + j * BT / (hot ? 4 : 2), j % 2 ? .45 : .7);
+        // 贝斯八分音符：根音为主，第四个和第八个跳八度
+        for (let j = 0; j < 2; j++) k.bass(t0 + j * BT / 2, root * ((ib * 2 + j) % 4 === 3 ? 2 : 1), BT * .45, 1.05, { cut: .09 });
+        if (ib === 0) { this.gtr(k, t0, root, hot ? BAR * .95 : BT * 1.4, hot ? 1 : .8); if (bar % 4 === 0) k.crash(t0, .6); }
+        else this.gtr(k, t0 + BT / 2, root, BT * .4, .7, true);
+        if (hot) k.arp(t0 + BT / 2, tones[(bt + 1) % tones.length] * 4, BT * .4, .8, ib % 2 ? .5 : -.5);
+        if (ib === 3 && bar % 4 === 3) this.fill(k, t0, .9);
+      }
+    },
+  }),
+
   lyre: preset({
     prog: [[73.42, [146.83, 220, 293.66, 349.23]], [65.41, [130.81, 196, 261.63, 329.63]], [58.27, [116.54, 174.61, 233.08, 293.66]], [65.41, [130.81, 196, 261.63, 329.63]]],
     darkProg: [[73.42, [146.83, 220, 293.66, 349.23]], [58.27, [116.54, 174.61, 233.08, 293.66]], [49, [98, 146.83, 196, 233.08]], [55, [110, 164.81, 220, 277.18]]],

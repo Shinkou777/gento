@@ -10,7 +10,7 @@ GENTO is a Claude Code skill that turns a brief into a short animated film with 
 
 ## Styles
 
-Nine style packs. Every scene template works in every style, format and language.
+Ten style packs. Every scene template works in every style, format and language.
 
 | Style | Look | Default music |
 |---|---|---|
@@ -23,6 +23,7 @@ Nine style packs. Every scene template works in every style, format and language
 | `serene` 岁月静好 | Warm light, film grain, dust, text drifting in from a blur | piano 72 |
 | `explainer` 讲故事 | Flat illustration: bouncy shapes, icons, arrows, iris transitions | bright 108 |
 | `amphora` 希腊陶瓶 | Black- and red-figure pottery or marble: meander borders, laurels, Roman capitals, column bar charts | lyre 96 |
+| `toon` 卡通波普 | Cartoon pop with anime exaggeration: thick outlines, flat fills, sunset bands, ray bursts, explosion balloons, black-and-white impact frames | turbo 168 |
 
 | | | |
 |---|---|---|
@@ -30,6 +31,7 @@ Nine style packs. Every scene template works in every style, format and language
 | ![Blueprint](docs/gallery/blueprint.jpg) | ![Industrial](docs/gallery/industrial.jpg) | ![Serene](docs/gallery/serene.jpg) |
 | ![Explainer](docs/gallery/explainer.jpg) | ![Amphora](docs/gallery/amphora.jpg) | ![Amphora, English with Japanese and Chinese subtitles](docs/gallery/amphora-trilingual.jpg) |
 | ![Riso 9:16 ja](docs/gallery/riso-9x16-ja.jpg) | ![Woodblock 9:16 ja](docs/gallery/woodblock-9x16-ja.jpg) | ![Explainer 9:16 en](docs/gallery/explainer-9x16-en.jpg) |
+| ![Toon](docs/gallery/toon.jpg) | ![Toon sample film: delivery race](docs/gallery/delivery-race.jpg) | ![Family tree, portrait medallions, transitions](docs/gallery/greek-genealogy.jpg) |
 
 Scene templates for artwork: `T.statue` (a cut-out statue standing in front of a giant word, with a blurred painting behind it for depth), `T.plate` (a full-bleed painting with a camera path and a light sweep), `T.montage` (beat-synced cuts) and `T.credits` (thumbnails plus sources). `scripts/fetch_art.py` searches open museum collections and Wikimedia Commons, accepts only CC0 and public-domain files and records the source of each one; `scripts/prep_art.py` cuts out and color-grades the images. See `samples/greek-myth`.
 
