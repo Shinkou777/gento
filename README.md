@@ -31,7 +31,9 @@ Nine style packs. Every scene template works in every style, format and language
 | ![Explainer](docs/gallery/explainer.jpg) | ![Amphora](docs/gallery/amphora.jpg) | ![Amphora, English with Japanese and Chinese subtitles](docs/gallery/amphora-trilingual.jpg) |
 | ![Riso 9:16 ja](docs/gallery/riso-9x16-ja.jpg) | ![Woodblock 9:16 ja](docs/gallery/woodblock-9x16-ja.jpg) | ![Explainer 9:16 en](docs/gallery/explainer-9x16-en.jpg) |
 
-Scene templates for artwork: `T.statue` (a cut-out statue standing in front of a giant word), `T.plate` (a full-bleed painting with a camera path), `T.montage` (beat-synced cuts) and `T.credits` (thumbnails plus sources). `scripts/prep_art.py` cuts out and color-grades the images. See `samples/greek-myth`.
+Scene templates for artwork: `T.statue` (a cut-out statue standing in front of a giant word, with a blurred painting behind it for depth), `T.plate` (a full-bleed painting with a camera path and a light sweep), `T.montage` (beat-synced cuts) and `T.credits` (thumbnails plus sources). `scripts/fetch_art.py` searches open museum collections and Wikimedia Commons, accepts only CC0 and public-domain files and records the source of each one; `scripts/prep_art.py` cuts out and color-grades the images. See `samples/greek-myth`.
+
+For longer films there are `T.void` (a glowing title over particles), `T.tree` (a family tree that grows node by node with an automatic camera), `T.trio` (three works side by side) and `T.pantheon` (a wall of portrait medallions), four scene transitions (ink, shatter, sand, zoom) and seven particle and light effects (dust, light rays, stars, vortex, embers or falling gold, water shimmer, lightning). See `samples/greek-genealogy`.
 
 Formats: 16:9, 9:16, 1:1, 4:5. Languages: Chinese, Japanese, English, three languages set side by side, or one main language with the other two as subtitles. Frame rates: 24, 30, 60.
 

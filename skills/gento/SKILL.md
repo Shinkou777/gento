@@ -37,7 +37,7 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 | 色调 | 该风格的三个色调，preview 写主色色值和适合什么 |
 | 节奏 | 快切 ／ 标准 ／ 舒缓 |
 | 音乐 | 风格默认预设（推荐）+ 两三个搭得上的 + 无配乐；题干列出全部预设名 |
-| 片长 | 15 秒 ／ 30 秒 ／ 45 秒 ／ 60 秒 |
+| 片长 | 15 秒 ／ 30 秒 ／ 45 秒 ／ 60 秒。素材多（一整套谱系、一段历史）时给「约 2 分半」「分上下两部」这类选项，并问清每部讲到哪里 |
 
 **第三轮**
 
@@ -59,14 +59,15 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 ```
 
 1. **写 film.json**：`title` `style` `palette` `music` `format` `fps` `lang` `pace` `target`（目标秒数）。BPM 不写，跟音乐预设走。
-2. **需要图片时先备素材**：照 templates.md「图片素材」找图、查授权、抠图调色、登记到 film.json 的 assets。
+2. **需要图片时先备素材**：照 templates.md「图片素材」用 `scripts/fetch_art.py` 找图、查授权，`scripts/prep_art.py` 抠图调色，登记到 film.json 的 assets。原图放片源的 `raw/`，处理后的放 `assets/`。
 3. **写分镜 film.js**：用 `FILM({ scenes: [...] })`，场景按小节排。先读 `${CLAUDE_SKILL_DIR}/references/grammar.md` 和 `${CLAUDE_SKILL_DIR}/references/templates.md`。
    - 一小节的秒数＝240 ÷ BPM。片长 × BPM ÷ 240 ＝总小节数，照这个分配场景
-   - 画风决定用哪些模板，节奏决定每场几小节，对照表在 templates.md
+   - 画风决定用哪些模板，节奏决定每场几小节，对照表在 templates.md；字多的场景按「读得完是底线」给时长，全片快慢一致
+   - 长片场与场之间用转场（`trans`），战斗、神迹这类段落加光效（`fx` / `back`），谱系用族谱树
    - 屏幕上的字照 `~/.claude/CLAUDE.md` 的写作规则写；素材里没有的事实、数字、引语不写
 4. **质检**：`node ${CLAUDE_SKILL_DIR}/scripts/check.js <片源目录>`。有 FAIL 就改到没有；WARN 逐条看，能改就改。
 5. **看联系表**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --sheet --out <成品目录>`，用 Read 看图。自动质检看不出的：字色和底色对比、字的意思对不对、同一片里风格是否一致。查法见 `${CLAUDE_SKILL_DIR}/references/qa.md`。
-6. **导出**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。
+6. **导出**：`node ${CLAUDE_SKILL_DIR}/scripts/render.js <片源目录> --out <成品目录> --name <片名>`，把 `film.html` 复制到成品目录改名 `<片名>.html`。分部的片子每部一个 slug，各自走完 4〜6 步。
 7. **交付**：`open` 成品目录。回复里写清：成品路径、片长和规格、用了哪些选择、自拟了哪些文案、质检结果、有没有没做到的。
 
 ## 三、改片
@@ -86,7 +87,8 @@ command -v ffmpeg >/dev/null || echo "缺 ffmpeg：brew install ffmpeg"
 | `engine/` | 引擎：时间线、镜头、画图零件、风格默认零件、合成器、播放器、质检接口 |
 | `styles/<id>/style.js` | 风格包，`styles/catalog.json` 登记名字、色调、默认音乐和字体 |
 | `music/presets.js` | 音乐预设，`music/catalog.json` 登记 BPM 和简介 |
-| `scenes/library.js` | 场景模板 T.open / poster / chapter / quote / number / bars / list / compare / steps / timeline / talk / verdict / outro / custom |
-| `scripts/` | build（拼成单文件 HTML）、render（MP4 / 联系表 / 静帧）、check（质检）、test（回归） |
-| `samples/` | 每个风格的样片配置，共用 `samples/_tour/film.js` |
+| `scenes/library.js` | 场景模板 T.open / poster / chapter / quote / number / bars / list / compare / steps / timeline / talk / verdict / outro，真品图片用的 statue / plate / montage / credits，长片用的 void / tree / trio / pantheon，以及 custom |
+| `engine/fx.js` | 粒子与光效（FX）、转场（TRANS） |
+| `scripts/` | build（拼成单文件 HTML）、render（MP4 / 联系表 / 静帧）、check（质检）、test（回归）、fetch_art（找图查授权）、prep_art（抠图调色） |
+| `samples/` | 每个风格的样片配置，共用 `samples/_tour/film.js`；greek-myth、greek-genealogy（含竖版）是用真品图片的完整样片 |
 | `references/` | grammar 片子语法、templates 模板用法、styles 风格说明、music 音乐、qa 质检、extend 扩展 |

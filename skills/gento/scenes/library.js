@@ -554,14 +554,15 @@ T.outro = (o) => {
 };
 
 /* ---------- 雕像：抠好的雕像立在一个大词前面，三语文字在另一侧 ---------- */
-// o: { img, crop, big（雕像后面的大词）, title: {en,ja,zh}, body: {en,ja,zh}, credit, side: 'right'|'left', scale }
+// o: { img, crop, big（雕像后面的大词）, title: {en,ja,zh}, body: {en,ja,zh}, credit, side: 'right'|'left', scale,
+//      backdrop（糊化铺底的名画）, backCam, back（底层光效）, depth（视差强度，默认 1） }
 T.statue = (o) => {
   let lay;
   const side = o.side || 'right';
   const layout = ctx => {
     const colW = WIDE ? W * .42 : L.cw, cx = WIDE ? (side === 'right' ? W * .72 : W * .28) : W / 2;
     const sh = WIDE ? H * (o.scale ?? .9) : H * (o.scale ?? .5), by = WIDE ? H - 26 * U : H - 40 * U;
-    const bigSz = o.big ? fitText(ctx, o.big, WIDE ? W * .44 : W * .92, (o.bigSize || 480) * U, F.latin) : 0;
+    const bigSz = o.big ? fitText(ctx, o.big, WIDE ? W * .44 : W * .82, (o.bigSize || 480) * U, F.latin) : 0;
     const bigY = WIDE ? H * .5 : by - sh * .62;
     const region = WIDE ? { y: L.top - 40 * U, h: L.ch + 80 * U } : { y: L.top - 20 * U, h: Math.max(200 * U, by - sh - L.top) };
     let T1, T2, th, bh, items;
@@ -569,7 +570,7 @@ T.statue = (o) => {
     for (let f = 1; ; f *= .92) {
       T1 = { size: (o.titleSize || 84) * U * f, maxW: colW, role: F.head, cjk: .74, wrap: true, maxLines: 2 }; T2 = { size: 46 * U * Math.max(f, .8), maxW: colW, role: F.body, cjk: .82, wrap: true, maxLines: 2, gap: 18 * U };
       th = o.title ? triH(ctx, o.title, T1) : 0; bh = o.body ? triH(ctx, o.body, T2) : 0;
-      items = [{ h: th }, { h: o.body ? 6 * U : 0, gap: 34 * U }, { h: bh, gap: 34 * U }, { h: o.credit ? 26 * U : 0, gap: 40 * U }];
+      items = [{ h: th }, { h: o.body ? 6 * U : 0, gap: 34 * U }, { h: bh, gap: 34 * U }, { h: o.credit ? 50 * U : 0, gap: 40 * U }];
       if (stackH(items) <= region.h || f < .5) break;
     }
     const ys = stackY(region, items);
@@ -577,18 +578,28 @@ T.statue = (o) => {
     return { colW, cx, sh, by, bigSz, bigY, T1, T2, tx, ys, th, bh };
   };
   return {
-    kind: o.kind || 'content', hud: o.hud, bg: { tone: o.tone || 'base', deco: o.deco ?? 0 },
+    kind: o.kind || 'content', hud: o.hud, bg: { tone: o.backdrop ? 'dark' : (o.tone || 'base'), deco: o.deco ?? 0 },
     fn(ctx, u, d, t) {
       lay = lay || layout(ctx);
-      const fg = onTone(this.bg.tone);
-      STYLE.bg(ctx, u, d, t, this.bg);
-      if (o.big) STYLE.hit(ctx, o.big, lay.cx, lay.bigY, u, BT, { size: lay.bigSz, font: F.latin, align: 'center', color: accentOn(this.bg.tone, o.bigColor || C.a1), g: 'big', over: true });
-      const k = eOut(P(u, 0, .7 * PACE.enter)), push = 1 + .05 * (u / d);
-      ctx.save(); ctx.globalAlpha = k; cutImg(ctx, IMG(o.img), lay.cx, lay.by + (1 - k) * 60 * U, lay.sh * push, { crop: o.crop }); ctx.restore();
+      const fg = onTone(this.bg.tone), p = u / d, dep = (o.depth ?? 1) * (side === 'right' ? 1 : -1);
+      if (o.backdrop) {
+        // 纵深：底图糊化、往反方向慢移，雕像往前
+        field(ctx, C.dark);
+        ctx.save(); ctx.filter = `blur(${7 * U}px)`; ctx.globalAlpha = .75;
+        cover(ctx, IMG(o.backdrop), { x: -60 * U - dep * 40 * U * p, y: -40 * U, w: W + 120 * U, h: H + 80 * U }, camAt(p, o.backCam || [[0, .5, .45, 1.12], [1, .5, .45, 1.22]]));
+        ctx.restore();
+        const g = ctx.createLinearGradient(side === 'right' ? 0 : W, 0, side === 'right' ? W : 0, 0); g.addColorStop(0, tint(C.dark, 1, .88)); g.addColorStop(.5, tint(C.dark, 1, .55)); g.addColorStop(1, tint(C.dark, 1, .25));
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        if (STYLE.bands) { ctx.save(); ctx.globalAlpha = .8; STYLE.bands(ctx, accentOn('dark', C.a1), 1); ctx.restore(); }
+      } else STYLE.bg(ctx, u, d, t, this.bg);
+      runFx(ctx, o.back, u, d, t);
+      if (o.big) { ctx.save(); ctx.translate(-dep * 50 * U * p, 0); STYLE.hit(ctx, o.big, lay.cx, lay.bigY, u, BT, { size: lay.bigSz, font: F.latin, align: 'center', color: accentOn(this.bg.tone, o.bigColor || C.a1), g: 'big', over: true }); ctx.restore(); }
+      const k = eOut(P(u, 0, .7 * PACE.enter)), push = 1 + .06 * eIO(p);
+      ctx.save(); ctx.globalAlpha = k; cutImg(ctx, IMG(o.img), lay.cx + dep * 22 * U * p, lay.by + (1 - k) * 60 * U, lay.sh * push, { crop: o.crop, shadow: !o.backdrop }); ctx.restore();
       const x = lay.tx;
       if (o.title) tri(ctx, o.title, x, lay.ys[0] - lay.th / 2, u, 1.5 * BT, { ...lay.T1, color: fg });
       if (o.body) { ctx.fillStyle = C.a1; ctx.fillRect(x, lay.ys[1] - 3 * U, 140 * U * eOut(P(u, 2.2 * BT, 2.2 * BT + .4)), 3 * U); tri(ctx, o.body, x, lay.ys[2] - lay.bh / 2, u, 2.5 * BT, { ...lay.T2, color: fg }); }
-      if (o.credit && u > 3.2 * BT) text(ctx, o.credit, x, lay.ys[3], { size: 22 * U, font: F.mono, align: 'left', color: C.muted, alpha: P(u, 3.2 * BT, 3.2 * BT + .3), meta: true });
+      if (o.credit && u > 3.2 * BT) creditText(ctx, o.credit, x, lay.ys[3] + 12 * U, lay.colW, { color: o.backdrop ? C.onDark : C.muted, alpha: (o.backdrop ? .8 : 1) * P(u, 3.2 * BT, 3.2 * BT + .3) });
     },
     cues(k, t0) { k.pop(t0 + .1, .6); k.hit(t0 + BT, 1); k.tick(t0 + 1.5 * BT, .8); k.note(t0 + 1.5 * BT, 4); k.tick(t0 + 2.5 * BT, .7); k.note(t0 + 2.5 * BT, 2); },
     imp: d => [[BT, 1], [1.5 * BT, .3]],
@@ -596,16 +607,21 @@ T.statue = (o) => {
 };
 
 /* ---------- 名画：整屏铺满，镜头沿路径推移，三语文字压在一侧的暗角上 ---------- */
-// o: { img, cam: [[进度, x, y, z], ...], side: 'left'|'right', head: {en,ja,zh}, body: {en,ja,zh}, credit }
+// o: { img, cam: [[进度, x, y, z], ...], side: 'left'|'right', head: {en,ja,zh}, body: {en,ja,zh}, credit,
+//      fg（同尺寸抠图做前景层，prep_art --cutout --keep）, pop（前景比底图多推多少，默认 .1）, sweep（入场扫光，默认开）, back（光效） }
 T.plate = (o) => {
   let lay;
   const side = o.side || 'left';
   const layout = ctx => {
     const colW = WIDE ? W * .38 : L.cw;
-    const H1 = { size: 150 * U, maxW: colW, role: F.latin, cjk: .5 }, H2 = { size: 44 * U, maxW: colW, role: F.body, cjk: .82, wrap: true, maxLines: 3, gap: 18 * U };
-    const hh = o.head ? triH(ctx, o.head, H1) : 0, bh = o.body ? triH(ctx, o.body, H2) : 0;
-    const items = [{ h: hh }, { h: bh, gap: 44 * U }];
-    const region = WIDE ? { y: L.top, h: L.ch } : { y: H * .56, h: L.bot - H * .56 };
+    const region = WIDE ? { y: L.top, h: L.ch - 50 * U } : { y: H * .56, h: L.bot - H * .56 - 40 * U };
+    let H1, H2, hh, bh, items;
+    for (let f = 1; ; f *= .93) {
+      H1 = { size: 150 * U * f, maxW: colW, role: F.latin, cjk: .5 }; H2 = { size: 44 * U * Math.max(f, .8), maxW: colW, role: F.body, cjk: .82, wrap: true, maxLines: 3, gap: 16 * U };
+      hh = o.head ? triH(ctx, o.head, H1) : 0; bh = o.body ? triH(ctx, o.body, H2) : 0;
+      items = [{ h: hh }, { h: bh, gap: 40 * U }];
+      if (stackH(items) <= region.h || f < .55) break;
+    }
     const ys = stackY(region, items);
     const tx = WIDE ? (side === 'left' ? L.left : W - L.m - colW) : L.left;
     return { colW, H1, H2, hh, bh, ys, tx };
@@ -615,7 +631,12 @@ T.plate = (o) => {
     fn(ctx, u, d, t) {
       lay = lay || layout(ctx);
       field(ctx, C.dark);
-      cover(ctx, IMG(o.img), { x: -10, y: -10, w: W + 20, h: H + 20 }, camAt(u / d, o.cam || [[0, .5, .5, 1.05], [1, .5, .5, 1.18]]));
+      const cam = camAt(u / d, o.cam || [[0, .5, .5, 1.05], [1, .5, .5, 1.18]]), fgI = o.fg && IMG(o.fg), pk = fgI ? eIO(clamp(u / d)) : 0;
+      if (fgI) { ctx.save(); ctx.filter = `blur(${pk * 5 * U}px) brightness(${1 - pk * .18})`; }
+      cover(ctx, IMG(o.img), { x: -10, y: -10, w: W + 20, h: H + 20 }, cam);
+      if (fgI) { ctx.restore(); cover(ctx, fgI, { x: -10, y: -10, w: W + 20, h: H + 20 }, { ...cam, z: cam.z * (1 + (o.pop ?? .1) * pk) }); }
+      runFx(ctx, o.back, u, d, t);
+      if (o.sweep !== false) FX.sweep(ctx, P(u, .15, 1.6), { alpha: .16 });
       // 暗角：文字那一侧压暗
       const g = WIDE ? ctx.createLinearGradient(side === 'left' ? 0 : W, 0, side === 'left' ? W * .66 : W * .34, 0) : ctx.createLinearGradient(0, H, 0, H * .38);
       g.addColorStop(0, tint(C.dark, 1, .9)); g.addColorStop(.55, tint(C.dark, 1, .55)); g.addColorStop(1, tint(C.dark, 1, 0));
@@ -629,8 +650,9 @@ T.plate = (o) => {
       }
       if (o.body) tri(ctx, o.body, x, lay.ys[1] - lay.bh / 2, u, 2.2 * BT, { ...lay.H2, color: fg });
       if (o.credit && u > 3 * BT) {
+        // 出处放在文字的另一侧，宽度不超过半屏
         const cx = WIDE ? (side === 'left' ? W - L.m * .55 : L.m * .55) : L.left, al = WIDE && side === 'left' ? 'right' : 'left';
-        text(ctx, o.credit, cx, H - 44 * U, { size: 22 * U, font: F.mono, align: al, color: C.onDark, alpha: .8 * P(u, 3 * BT, 3 * BT + .3), meta: true, shadow: 'rgba(0,0,0,.6)', sdx: 0, sdy: 2 });
+        creditText(ctx, o.credit, cx, H - 44 * U, WIDE ? W * .46 : L.cw, { align: al, color: C.onDark, alpha: .8 * P(u, 3 * BT, 3 * BT + .3), shadow: 'rgba(0,0,0,.6)' });
       }
     },
     cues(k, t0, d) { k.swish(t0 + .05, .6, .35); k.hit(t0 + BT, .9); k.tick(t0 + 1.4 * BT, .6); k.note(t0 + 2.2 * BT, 3); },
@@ -639,7 +661,7 @@ T.plate = (o) => {
 };
 
 /* ---------- 快切：一拍一张图，大字压在画面上 ---------- */
-// o: { items: [{ img, cam, cut（抠图就写 true）, head: {en,ja,zh}, credit }], per（每张几拍）, center, kind }
+// o: { items: [{ img, cam, cut（抠图就写 true）, head: {en,ja,zh}, kicker（大字上方的一行小字）, credit }], per（每张几拍）, center, kind, back（光效） }
 T.montage = (o) => {
   const per = (o.per || 1) * BT, n = o.items.length;
   return {
@@ -649,12 +671,14 @@ T.montage = (o) => {
       field(ctx, C.dark);
       if (it.cut) { STYLE.bg(ctx, u, d, t, { tone: it.tone || 'base', deco: i }); cutImg(ctx, IMG(it.img), W / 2 + (it.dx || 0) * W, H - 30 * U, H * (it.scale || .86) * (1 + p * .04), { crop: it.crop }); }
       else cover(ctx, IMG(it.img), { x: -10, y: -10, w: W + 20, h: H + 20 }, camAt(p, it.cam || [[0, .5, .5, 1.08], [1, .5, .5, 1.2]]));
+      runFx(ctx, it.back || o.back, u, d, t);
       if (o.center) { ctx.fillStyle = tint(C.dark, 1, .45); ctx.fillRect(0, 0, W, H); }
       else { const g = ctx.createLinearGradient(0, H, 0, H * .35); g.addColorStop(0, tint(C.dark, 1, .88)); g.addColorStop(1, tint(C.dark, 1, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
       if (it.head) {
         const big = o.center ? 360 * U : 150 * U, opt = { size: big, maxW: o.center ? W * .8 : W * .7, role: F.latin, cjk: o.center ? .26 : .42, align: o.center ? 'center' : 'left', gap: big * .12 };
         const h = triH(ctx, it.head, opt), x = o.center ? W / 2 : L.left, y0 = o.center ? H / 2 - h / 2 : L.bot + 40 * U - h;
         const ls = triLines(ctx, it.head, opt), sc = slamS(ui, 0, 1.12, .12);
+        if (it.kicker) text(ctx, it.kicker, x, y0 - 40 * U, { size: 30 * U, font: F.latin, align: opt.align, color: C.a3, alpha: eOut(P(ui, .05, .4)), meta: true });
         ctx.save(); ctx.translate(x, y0 + ls[0].sz / 2); ctx.scale(sc, sc); text(ctx, ls[0].s, 0, 0, { size: ls[0].sz, font: ls[0].role, align: opt.align, color: C.onDark, g: 'mh' + i }); ctx.restore();
         const rest = Object.fromEntries(Object.entries(it.head).filter(([l]) => l !== LANG));
         tri(ctx, rest, x, y0 + ls[0].sz + opt.gap, ui, .08, { ...opt, size: ls[0].sz * opt.cjk, cjk: 1, color: C.onDark, step: .06 });
@@ -673,10 +697,13 @@ T.credits = (o) => {
   const n = o.items.length;
   const layout = ctx => {
     const th = triH(ctx, o.title, { size: 64 * U, maxW: L.cw, role: F.head, cjk: .7 });
-    const cols = WIDE ? Math.min(n, 10) : Math.min(n, 5), tw_ = (L.cw - (cols - 1) * 16 * U) / cols, thH = Math.min(tw_ * 1.25, (WIDE ? 230 : 260) * U);
-    const rows = Math.ceil(n / cols), lines = o.items.map((it, i) => `${pad2(i + 1)}  ${it.credit}`), lh = 30 * U;
+    const cols = WIDE ? Math.min(n, 12) : Math.min(n, 5), tw_ = (L.cw - (cols - 1) * 16 * U) / cols;
+    const rows = Math.ceil(n / cols), lines = o.items.map((it, i) => `${pad2(i + 1)}  ${it.credit}`), lh = 29 * U;
     const longest = Math.max(...lines.map(s => tw(ctx, s, 21 * U, F.mono))), listCols = WIDE && longest < (L.cw - 40 * U) / 2 ? 2 : 1;
-    return { th, cols, tw_, thH, rows, listCols, lines, lh };
+    const noteH = o.note ? triH(ctx, o.note, { size: 26 * U, maxW: L.cw, role: F.body, cjk: .92, gap: 6 * U }) + 24 * U : 0;
+    const avail = H - 50 * U - noteH - (L.top - 30 * U + th + 40 * U) - Math.ceil(n / listCols) * lh - 30 * U - (rows - 1) * 16 * U;
+    const thH = clamp(Math.min(tw_ * 1.25, (WIDE ? 230 : 260) * U, avail / rows), 90 * U, 260 * U);
+    return { th, cols, tw_, thH, rows, listCols, lines, lh, noteH };
   };
   return {
     kind: 'outro', hud: false, bg: { tone: o.tone || 'base', deco: 1 },
@@ -701,9 +728,286 @@ T.credits = (o) => {
         const sz = fitText(ctx, s, colW - 10 * U, 21 * U, F.mono, undefined, 14 * U);
         text(ctx, s, L.left + c * (colW + 40 * U), ly + r * lay.lh, { size: sz, font: F.mono, align: 'left', color: fg, alpha: a, meta: true });
       });
-      if (o.note) tri(ctx, o.note, W / 2, Math.min(H - 150 * U, ly + per * lay.lh + 20 * U), u, BT * 3, { size: 26 * U, maxW: L.cw, role: F.body, cjk: .92, align: 'center', color: C.muted, gap: 6 * U });
+      if (o.note) tri(ctx, o.note, W / 2, H - 50 * U - lay.noteH + 24 * U, u, BT * 3, { size: 26 * U, maxW: L.cw, role: F.body, cjk: .92, align: 'center', color: C.muted, gap: 6 * U });
     },
     cues(k, t0) { o.items.forEach((_, i) => k.pop(t0 + .3 + i * BT * .25, .5)); k.ding(t0 + BT * 2, 2349.3, .6); },
+    imp: d => [],
+  };
+};
+
+/* ---------- 出处小字：限宽，放不下折两行，最后一行落在 yb ---------- */
+function creditText(ctx, s, x, yb, maxW, o = {}) {
+  const b = fitBlock(ctx, s, maxW, 60 * U, 21 * U, F.mono, { maxLines: 2, min: 19 * U, lh: 1.3 });
+  b.lines.forEach((ln, i) => text(ctx, ln, x, yb - (b.lines.length - 1 - i) * b.lh, { size: b.size, font: F.mono, align: o.align || 'left', color: o.color || C.muted, alpha: o.alpha ?? 1, meta: true, shadow: o.shadow }));
+  return b.lines.length * b.lh;
+}
+
+/* ---------- 圆形像章：图片裁进圆里，外圈金线 ---------- */
+// face = [x, y, z]：图上对准圆心的点和放大倍数
+function medal(ctx, img, x, y, r, o = {}) {
+  if (r <= 0) return;
+  const gold = o.ring || C.a3;
+  ctx.save();
+  if (o.glow) { ctx.shadowColor = gold; ctx.shadowBlur = o.glow * r; }
+  circ(ctx, x, y, r, o.fill || C.dark);
+  ctx.restore();
+  if (img) {
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r * .94, 0, 7); ctx.clip();
+    const f = o.face || [.5, .3, 1.6];
+    cover(ctx, img, { x: x - r, y: y - r, w: 2 * r, h: 2 * r }, { x: f[0], y: f[1], z: f[2] });
+    ctx.restore();
+  } else if (o.letter) text(ctx, o.letter, x, y + r * .06, { size: r * .9, font: F.latin, color: gold, g: o.g, over: true, deco: true });
+  ctx.save(); ctx.strokeStyle = gold; ctx.lineWidth = Math.max(2, r * .06); ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.stroke();
+  ctx.lineWidth = Math.max(1, r * .02); ctx.beginPath(); ctx.arc(x, y, r * 1.12, 0, 7); ctx.stroke(); ctx.restore();
+}
+
+/* ---------- 深空大字：暗底 + 粒子，中间一个大词、三语一句 ---------- */
+// o: { big: {en,ja,zh} | 字符串, body: {en,ja,zh}, kicker: 'PART I', back: [光效...], at（大词落下的秒数）, img（可选：糊化的底图） }
+T.void = (o) => {
+  let lay;
+  const at = o.at ?? BT;
+  const bigT = typeof o.big === 'string' ? { [LANG]: o.big } : o.big;
+  const layout = ctx => {
+    const ls = triLines(ctx, bigT, { size: (o.bigSize || 230) * U, maxW: W * .86, role: LANG === 'en' ? F.latin : F.head, cjk: .3 });
+    const bh = ls.reduce((a, r, i) => a + r.h + (i ? ls[0].sz * .14 : 0), 0);
+    const B = { size: 46 * U, maxW: WIDE ? W * .6 : L.cw, role: F.body, cjk: .86, wrap: true, maxLines: 2, align: 'center', gap: 12 * U };
+    const th = o.body ? triH(ctx, o.body, B) : 0, kh = o.kicker ? 40 * U : 0;
+    const total = kh + (kh ? 36 * U : 0) + bh + (th ? 60 * U + th : 0), y0 = H / 2 - total / 2;
+    return { ls, bh, B, th, kh, y0 };
+  };
+  return {
+    kind: o.kind || 'content', hud: false, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      STYLE.bg(ctx, u, d, t, this.bg);
+      if (o.img) { ctx.save(); ctx.globalAlpha = .45 * eOut(P(u, 0, 1)); ctx.filter = `blur(${10 * U}px)`; cover(ctx, IMG(o.img), { x: -40, y: -40, w: W + 80, h: H + 80 }, camAt(u / d, o.cam || [[0, .5, .5, 1.1], [1, .5, .5, 1.25]])); ctx.restore(); ctx.fillStyle = tint(C.dark, 1, .45); ctx.fillRect(0, 0, W, H); }
+      runFx(ctx, o.back ?? [{ type: 'stars', alpha: .8 }, { type: 'dust', n: 60 }], u, d, t);
+      let y = lay.y0;
+      if (o.kicker) { text(ctx, o.kicker, W / 2, y + lay.kh / 2, { size: 34 * U, font: F.latin, color: C.a3, alpha: eOut(P(u, 0, .5)), meta: true }); y += lay.kh + 36 * U; }
+      const k = eOut(P(u, at, at + .45)), fg = C.onDark, gold = C.a3;
+      lay.ls.forEach((r, i) => {
+        const cy = y + r.h / 2;
+        if (i === 0) {
+          if (u >= at) {
+            ctx.save(); ctx.filter = `blur(${(1 - k) * 16 * U}px)`;
+            text(ctx, r.s, W / 2, cy, { size: r.sz, font: r.role, color: accentOn('dark', o.color || C.a1), scale: lerp(1.22, 1, k), alpha: k, glow: o.glow ?? tint(gold, 1, .55), g: 'void' });
+            ctx.restore();
+            const lw = tw(ctx, r.s, r.sz, r.role) * eOut(P(u, at + .2, at + .8));
+            ctx.fillStyle = gold; ctx.fillRect(W / 2 - lw / 2, cy + r.sz * .52, lw, Math.max(2, 3 * U));
+          }
+        } else text(ctx, r.s, W / 2, cy + (1 - eOut(P(u, at + .3 + i * .12, at + .7 + i * .12))) * 20 * U, { size: r.sz, font: r.role, color: fg, alpha: eOut(P(u, at + .3 + i * .12, at + .7 + i * .12)), g: 'void' });
+        y += r.h + lay.ls[0].sz * .14;
+      });
+      if (o.body) tri(ctx, o.body, W / 2, y + 60 * U, u, at + 1.2 * BT, { ...lay.B, color: fg });
+    },
+    cues(k, t0) { k.raw.riser(t0 + Math.max(0, at - .6), Math.min(.6, at), .5); k.hit(t0 + at, 1.1); k.note(t0 + at + 1.2 * BT, 4); },
+    imp: d => [[at, .9]],
+  };
+};
+
+/* ---------- 族谱树：节点按顺序长出来，金线连到父母，镜头跟着移 ---------- */
+// nodes: { id: { name: {en,ja,zh}, at: [x, y]（世界坐标，1 格 ≈ 300px）, parents: [id] | [id, id], img, face, r, lab: 'down'|'up'|'right'|'left' } }
+// o: { nodes, show: [已有的 id], grow: [id | [id, id]...]（按顺序长）, cam: [[进度, x, y, z]...]（不写就自动取景）, caption: {en,ja,zh}, focus: id, back }
+T.tree = (o) => {
+  const N = o.nodes, WU = 300 * U, grow = (o.grow || []).map(g => [].concat(g));
+  const gIds = grow.flat(), show = o.show || [];
+  let times = null, lay;
+  const nodeR = n => (n.r || (n.img ? .3 : .2)) * WU;
+  let AREA = { top: 80 * U, bot: H * .72 };
+  const autoCam = ids => {
+    // 两遍：先按估计的缩放算留白，再按算出的缩放重算（名字的字号有下限，缩得越小名字占的格越多）
+    let z = .8, res;
+    for (let pass = 0; pass < 2; pass++) {
+      const lab = (34 * U * 2.9) / (WU * z), side = Math.max(.55, 110 * U / (WU * z));
+      let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+      for (const id of ids) { const n = N[id]; if (!n) continue; const r = (n.r || (n.img ? .3 : .2)); x0 = Math.min(x0, n.at[0] - Math.max(r * 1.2, side)); x1 = Math.max(x1, n.at[0] + Math.max(r * 1.2, side)); y0 = Math.min(y0, n.at[1] - r * 1.3 - (n.lab === 'up' ? lab : 0)); y1 = Math.max(y1, n.at[1] + r * 1.3 + (n.lab === 'up' ? 0 : lab)); }
+      z = clamp(Math.min(W * .92 / ((x1 - x0) * WU), (AREA.bot - AREA.top) / ((y1 - y0) * WU)), .45, 1.7);
+      res = [(x0 + x1) / 2, (y0 + y1) / 2, z];
+    }
+    return res;
+  };
+  const layout = ctx => {
+    const C_ = { size: 46 * U, maxW: WIDE ? W * .78 : L.cw, role: F.body, cjk: .86, wrap: true, maxLines: 2, gap: 10 * U };
+    const ch = o.caption ? triH(ctx, o.caption, C_) : 0;
+    AREA = { top: 80 * U, bot: (o.caption ? H - 64 * U - ch - 36 * U : H - 80 * U) };
+    let cam = o.cam;
+    if (!cam) {
+      // 镜头只取「这一场长出来的节点 + 它们的父母」，老的祖先留在画外
+      const withParents = ids => [...new Set(ids.flatMap(id => [id, ...((N[id] && N[id].parents) || [])]))];
+      const a = autoCam(withParents(grow[0] || show)), b = autoCam(withParents(gIds.length ? gIds : show));
+      cam = [[0, ...a], [.5, ...b], [1, b[0], b[1], b[2] * 1.05]];
+    }
+    return { C_, ch, cam, cy: (AREA.top + AREA.bot) / 2, cyBot: AREA.bot - 20 * U };
+  };
+  // 连线的起点：单亲从名字下方出发；夫妻并排从两人中点出发，上下错开就从下面那位的名字下方出发
+  const below = (id, S) => { const a = S(N[id].at), z = a[2], sz = clamp(34 * U * z, 28 * U, 46 * U); return [a[0], a[1] + nodeR(N[id]) * z * 1.25 + sz * 2.75]; };
+  const anchor = (n, S) => {
+    const ps = (n.parents || []).filter(p => N[p]);
+    if (ps.length === 2) {
+      const [p, q] = ps.map(id => N[id].at);
+      if (Math.abs(p[1] - q[1]) > .3) return below(p[1] > q[1] ? ps[0] : ps[1], S);
+      const a = S(p), b = S(q); return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    }
+    if (ps.length === 1) return below(ps[0], S);
+    return null;
+  };
+  const curve = (ctx, x0, y0, x1, y1, k, col, w) => {
+    if (k <= 0) return; const pts = [];
+    const my = (y0 + y1) / 2;
+    for (let i = 0; i <= 28; i++) { const s = i / 28, a = 1 - s; pts.push([a * a * a * x0 + 3 * a * a * s * x0 + 3 * a * s * s * x1 + s * s * s * x1, a * a * a * y0 + 3 * a * a * s * my + 3 * a * s * s * my + s * s * s * y1]); }
+    const m = Math.max(1, Math.round(28 * clamp(k)));
+    ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); pts.slice(0, m + 1).forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.restore();
+    if (k < 1) { const [x, y] = pts[m]; ctx.save(); ctx.globalCompositeOperation = 'lighter'; const g = ctx.createRadialGradient(x, y, 0, x, y, 18 * U); g.addColorStop(0, tint(col, 1.5, .95)); g.addColorStop(1, tint(col, 1, 0)); ctx.fillStyle = g; ctx.fillRect(x - 18 * U, y - 18 * U, 36 * U, 36 * U); ctx.restore(); }
+  };
+  return {
+    kind: o.kind || 'content', hud: false, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      if (!times) {
+        const t0 = o.start ?? .4, step = o.step ?? clamp((d - t0 - 2.8) / Math.max(1, grow.length), .3, BT * 1.5);
+        times = {}; grow.forEach((g, i) => g.forEach(id => { times[id] = t0 + i * step; }));
+      }
+      STYLE.bg(ctx, u, d, t, this.bg);
+      runFx(ctx, o.back ?? [{ type: 'stars', alpha: .55, n: 180 }, { type: 'dust', n: 40, alpha: .35 }], u, d, t);
+      const c = camAt(u / d, lay.cam), z = c.z;
+      const S = ([x, y]) => [W / 2 + (x - c.x) * WU * z, lay.cy + (y - c.y) * WU * z, z];
+      const gold = C.a3, dim = tint(gold, .85, .7);
+      const vis = id => show.includes(id) || (times[id] != null && u >= times[id]);
+      const kOf = id => show.includes(id) ? 1 : clamp((u - times[id]) / .5);
+      const ids = Object.keys(N).filter(vis);
+      // 夫妻连线
+      const pairs = new Set();
+      for (const id of ids) { const ps = N[id].parents || []; if (ps.length === 2 && ps.every(vis)) pairs.add(ps.join('|')); }
+      for (const pr of pairs) {
+        const [a, b] = pr.split('|'), A = S(N[a].at), B = S(N[b].at), k = Math.min(kOf(a), kOf(b));
+        const ra = nodeR(N[a]) * z * 1.15, rb = nodeR(N[b]) * z * 1.15, dx = B[0] - A[0], dy = B[1] - A[1], L_ = Math.hypot(dx, dy) || 1;
+        const x0 = A[0] + dx / L_ * ra, y0 = A[1] + dy / L_ * ra, x1 = B[0] - dx / L_ * rb, y1 = B[1] - dy / L_ * rb;
+        ctx.save(); ctx.strokeStyle = gold; ctx.globalAlpha = k; ctx.lineWidth = 2 * U; for (const off of [-4, 4]) { ctx.beginPath(); ctx.moveTo(x0, y0 + off * U); ctx.lineTo(lerp(x0, x1, k), lerp(y0, y1, k) + off * U); ctx.stroke(); } ctx.restore();
+      }
+      // 父母到孩子
+      for (const id of ids) {
+        const n = N[id], a = anchor(n, S); if (!a) continue;
+        const P_ = S(n.at), r = nodeR(n) * z, ke = show.includes(id) ? 1 : clamp((u - times[id]) / .45);
+        curve(ctx, a[0], a[1], P_[0], P_[1] - r * 1.12, ke, show.includes(id) ? dim : gold, Math.max(1.5, 3 * U * z));
+      }
+      // 节点与名字
+      for (const id of ids) {
+        const n = N[id], [x, y] = S(n.at), r = nodeR(n) * z, fresh = !show.includes(id), tk = fresh ? times[id] : -9;
+        const pk = fresh ? eBack(P(u, tk + .35, tk + .75)) : 1;
+        if (fresh) { FX.ring(ctx, x, y, r, P(u, tk + .4, tk + 1.1), gold); FX.burst(ctx, x, y, P(u, tk + .4, tk + 1.3), id.length * 7, { r: r / (60 * U) }); }
+        if (pk <= 0) continue;
+        const pulse = o.focus === id ? .4 + .25 * Math.sin(u * 4) : 0;
+        medal(ctx, IMG(n.img), x, y, r * pk, { face: n.face, letter: n.img ? null : (n.letter ?? (n.name[LANG] || n.name.en || '')[0]), glow: pulse, g: 'm' + id });
+        // 出画的节点只画像章不写名字
+        if (y - r < 60 * U || y + r > lay.cyBot || x < 60 * U || x > W - 60 * U) continue;
+        const lab = n.lab || 'down', sz = clamp(34 * U * z, 28 * U, 46 * U), la = lab === 'right' ? 'left' : lab === 'left' ? 'right' : 'center';
+        const lx = lab === 'right' ? x + r * 1.3 : lab === 'left' ? x - r * 1.3 : x;
+        const opt = { size: sz, maxW: WU * z * (n.labW || 1.1), role: LANG === 'en' ? F.latin : F.head, cjk: .8, align: la, color: C.onDark, gap: 3 * U, step: .07, dim: .85 };
+        if (fresh || o.labels === 'all') {
+          const h = triH(ctx, n.name, opt), ly = lab === 'up' ? y - r * 1.25 - h : lab === 'down' ? y + r * 1.25 : y - h / 2;
+          tri(ctx, n.name, lx, ly, u, fresh ? tk + .55 : 0, opt);
+        } else {
+          const s = n.name[LANG] || n.name.en, ly = lab === 'up' ? y - r * 1.25 - sz / 2 : lab === 'down' ? y + r * 1.25 + sz / 2 : y;
+          text(ctx, s, lx, ly, { size: sz, font: opt.role, align: la, color: C.onDark, alpha: .8, g: 'n' + id });
+        }
+      }
+      if (o.caption) {
+        const y0 = H - 64 * U - lay.ch, g = ctx.createLinearGradient(0, H, 0, y0 - 60 * U); g.addColorStop(0, tint(C.dark, 1, .94)); g.addColorStop(.7, tint(C.dark, 1, .8)); g.addColorStop(1, tint(C.dark, 1, 0)); ctx.fillStyle = g; ctx.fillRect(0, y0 - 60 * U, W, H - y0 + 60 * U);
+        tri(ctx, o.caption, L.left, y0, u, o.captionAt ?? .3, { ...lay.C_, color: C.onDark });
+      }
+    },
+    cues(k, t0, d) {
+      const s0 = o.start ?? .4, step = o.step ?? clamp((d - s0 - 2.8) / Math.max(1, grow.length), .3, BT * 1.5);
+      k.swish(t0 + .05, .6, .3);
+      grow.forEach((g, i) => { k.pop(t0 + s0 + i * step + .4, .55); k.note(t0 + s0 + i * step + .4, i); });
+    },
+    imp: d => [],
+  };
+};
+
+/* ---------- 三像并列：三件作品一字排开，各带名字和一句说明 ---------- */
+// o: { caption: {en,ja,zh}, items: [{ img, cut, crop, cam, name: {en,ja,zh}, role: {en,ja,zh}, fx: 'rays'|'shimmer'|'embers'|'stars' }] }
+T.trio = (o) => {
+  let lay;
+  const n = o.items.length, per = o.per || 1.25 * BT;
+  const layout = ctx => {
+    const C_ = { size: 50 * U, maxW: L.cw, role: F.head, cjk: .8, align: 'center', gap: 8 * U };
+    const ch = o.caption ? triH(ctx, o.caption, C_) : 0;
+    // 横版三列：拱窗在上、字在下；竖版方版每件一行：拱窗在左、字在右
+    const top = L.top - 20 * U + ch + 30 * U, rowH = (H - top - 60 * U) / n;
+    const colW = WIDE ? (W - 2 * L.m) / n : W - 2 * L.m, archW = WIDE ? colW * .88 : Math.min(W * .34, rowH * .7), txtW = WIDE ? colW * .9 : colW - archW - 40 * U;
+    const al = WIDE ? 'center' : 'left';
+    const N_ = { size: 72 * U, maxW: txtW, role: LANG === 'en' ? F.latin : F.head, cjk: .55, align: al, gap: 6 * U }, R_ = { size: 38 * U, maxW: txtW, role: F.body, cjk: .8, align: al, gap: 4 * U, wrap: true, maxLines: 2 };
+    const nh = Math.max(...o.items.map(it => triH(ctx, it.name, N_))), rh = Math.max(...o.items.map(it => it.role ? triH(ctx, it.role, R_) : 0));
+    const textH = nh + (rh ? 18 * U + rh : 0), imgH = WIDE ? H - 60 * U - top - textH - 30 * U : rowH - 24 * U;
+    return { C_, ch, colW, archW, N_, R_, nh, rh, top, imgH, textH, rowH };
+  };
+  return {
+    kind: o.kind || 'content', hud: false, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      STYLE.bg(ctx, u, d, t, this.bg);
+      if (o.caption) tri(ctx, o.caption, W / 2, L.top - 20 * U, u, .1, { ...lay.C_, color: C.onDark });
+      o.items.forEach((it, i) => {
+        const t0 = (o.start ?? .9) + i * per, k = eOut(P(u, t0, t0 + .6)); if (k <= 0) return;
+        const top = WIDE ? lay.top : lay.top + i * lay.rowH, cx = WIDE ? L.m + lay.colW * (i + .5) : L.left + lay.archW / 2;
+        const box = { x: cx - lay.archW / 2, y: top, w: lay.archW, h: lay.imgH }, p = clamp((u - t0) / (d - t0));
+        ctx.save(); ctx.globalAlpha = k; ctx.translate(0, (1 - k) * 40 * U);
+        // 拱形窗
+        const arch = () => { const rr = box.w / 2; ctx.beginPath(); ctx.moveTo(box.x, box.y + box.h); ctx.lineTo(box.x, box.y + rr); ctx.arc(cx, box.y + rr, rr, Math.PI, 0); ctx.lineTo(box.x + box.w, box.y + box.h); ctx.closePath(); };
+        ctx.save(); arch(); ctx.fillStyle = tint(C.dark, 1.4); ctx.fill(); ctx.clip();
+        if (it.fx) runFx(ctx, [{ type: it.fx, x: (cx) / W, y: it.fx === 'rays' ? (box.y - 40 * U) / H : undefined, alpha: it.fx === 'rays' ? .3 : undefined, angle: Math.PI / 2, spread: .12, n: it.fx === 'stars' ? 120 : undefined, w: box.w, h: box.h }], u, d, t);
+        if (it.cut) cutImg(ctx, IMG(it.img), cx, box.y + box.h, box.h * (it.scale || .94) * (1 + p * .04), { crop: it.crop, shadow: false });
+        else cover(ctx, IMG(it.img), box, camAt(p, it.cam || [[0, .5, .4, 1.05], [1, .5, .4, 1.18]]));
+        ctx.restore();
+        arch(); ctx.strokeStyle = C.a3; ctx.lineWidth = 3 * U; ctx.stroke();
+        ctx.restore();
+        const tx = WIDE ? cx : box.x + box.w + 40 * U, ty = WIDE ? box.y + box.h + 26 * U : box.y + box.h / 2 - lay.textH / 2;
+        tri(ctx, it.name, tx, ty, u, t0 + .25, { ...lay.N_, color: C.onDark, color2: C.onDark });
+        if (it.role) tri(ctx, it.role, tx, ty + lay.nh + 18 * U, u, t0 + .6, { ...lay.R_, color: C.a3, color2: C.onDark });
+      });
+    },
+    cues(k, t0) { o.items.forEach((_, i) => { const tt = t0 + (o.start ?? .9) + i * per; k.swish(tt - .1, .4, .5); k.pop(tt + .1, .8); k.note(tt + .25, i * 2); }); },
+    imp: d => [],
+  };
+};
+
+/* ---------- 众神墙：一格一位，依次点亮，最后整面停住 ---------- */
+// o: { title: {en,ja,zh}, items: [{ img, face, name: {en,ja,zh} }], note: {en,ja,zh}, cols }
+T.pantheon = (o) => {
+  let lay;
+  const n = o.items.length, per = o.per || BT / 2, t0_ = o.start ?? .6;
+  const layout = ctx => {
+    const T_ = { size: 64 * U, maxW: L.cw, role: F.head, cjk: .72, align: 'center', gap: 8 * U };
+    const th = triH(ctx, o.title, T_);
+    const cols = o.cols || (WIDE ? Math.ceil(n / 2) : STACK && H > W ? 3 : 4), rows = Math.ceil(n / cols);
+    const NT = { size: 26 * U, maxW: L.cw, role: F.body, cjk: .92, align: 'center', gap: 4 * U }, nbh = o.note ? triH(ctx, o.note, NT) : 0;
+    const NB = nbh ? nbh + 24 * U : 0, top = L.top - 30 * U + th + 36 * U, bot = H - 56 * U - NB;
+    const cw = (W - 2 * L.m) / cols, chh = (bot - top) / rows;
+    const N_ = { size: 32 * U, maxW: cw * .94, role: LANG === 'en' ? F.latin : F.head, cjk: .78, align: 'center', gap: 2 * U };
+    const nh = Math.max(...o.items.map(it => triH(ctx, it.name, N_)));
+    const r = Math.min(cw * .36, (chh - nh - 30 * U) / 2.3);
+    return { T_, th, cols, rows, top, cw, chh, N_, nh, r, bot, NT, nbh };
+  };
+  return {
+    kind: o.kind || 'content', hud: false, bg: { tone: 'dark' },
+    fn(ctx, u, d, t) {
+      lay = lay || layout(ctx);
+      STYLE.bg(ctx, u, d, t, this.bg);
+      runFx(ctx, o.back ?? [{ type: 'rays', x: .5, y: -.15, angle: Math.PI / 2, spread: .16, n: 9, alpha: .12 }, { type: 'dust', n: 50, alpha: .4 }], u, d, t);
+      tri(ctx, o.title, W / 2, L.top - 30 * U, u, 0, { ...lay.T_, color: C.onDark });
+      const done = t0_ + n * per + .6, hl = u > done ? Math.floor((u - done) / (BT / 2)) % n : -1;
+      o.items.forEach((it, i) => {
+        const r_ = Math.floor(i / lay.cols), c_ = i % lay.cols, rowN = Math.min(lay.cols, n - r_ * lay.cols), off = (lay.cols - rowN) * lay.cw / 2;
+        const cx = L.m + off + lay.cw * (c_ + .5), cy = lay.top + lay.chh * r_ + lay.r * 1.2, ti = t0_ + i * per;
+        const k = eBack(P(u, ti, ti + .4)); FX.ring(ctx, cx, cy, lay.r, P(u, ti + .05, ti + .8), C.a3); FX.burst(ctx, cx, cy, P(u, ti + .05, ti + .9), i * 11, { r: lay.r / (70 * U), n: 18 });
+        if (k <= 0) return;
+        medal(ctx, IMG(it.img), cx, cy, lay.r * k, { face: it.face, glow: hl === i ? .5 : 0, letter: it.img ? null : (it.name[LANG] || '')[0] });
+        tri(ctx, it.name, cx, cy + lay.r * 1.2 + 14 * U, u, ti + .2, { ...lay.N_, color: C.onDark, step: .05 });
+      });
+      if (o.note) tri(ctx, o.note, W / 2, H - 56 * U - lay.nbh, u, done - .3, { ...lay.NT, color: C.a3, color2: C.onDark });
+    },
+    cues(k, t0) { o.items.forEach((_, i) => { k.pop(t0 + t0_ + i * per + .05, .6); k.note(t0 + t0_ + i * per + .05, i); }); k.ding(t0 + t0_ + n * per + .3, 2349.3, .6); },
     imp: d => [],
   };
 };

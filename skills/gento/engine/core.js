@@ -41,7 +41,7 @@ const QA = { on: false, boxes: [], gid: 0 };
 
 /* ---------- 时间线 ---------- */
 // FILM({ scenes: [[名字, 小节数, 场景, 额外标记?], ...], hud, score })
-// 额外标记：{ hot, darkMusic, quiet, date, hud, flash, glitch, rumble }
+// 额外标记：{ hot, darkMusic, calm, quiet, date, hud, flash, glitch, rumble, fx, trans: { type: 'ink'|'shatter'|'sand'|'zoom', len, x, y } }
 // 场景 = { fn(ctx,u,d,t), kind, cues(k,t0,d), imp(d) → [[秒, 强度]], bg, flash, dark, quiet, hot, date, hud }
 let SC = [], ST = {}, DUR = 0, HUDCFG = {}, EXTRA_SCORE = null;
 function FILM(o) {
@@ -87,16 +87,44 @@ function resetCtx() {
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   ctx.filter = 'none'; ctx.shadowBlur = 0; ctx.shadowColor = 'transparent'; ctx.setLineDash([]);
 }
+// 场景光效：场景条目第四项写 fx: [{ type: 'dust' | 'rays' | 'stars' | 'vortex' | 'embers' | 'shimmer' | 'lightning', ... }]
+// 模板里也能用：runFx(ctx, [{ type: 'stars' }], u, d, t)，画在文字之前就不会压字
+function runFx(c, list, u, d, t) {
+  for (const f of list || []) {
+    if (f.from != null && u < f.from * BT) continue;
+    if (f.until != null && u > f.until * BT) continue;
+    const k = f.fade ? eOut(P(u, (f.from || 0) * BT, (f.from || 0) * BT + f.fade)) : 1;
+    c.save(); c.globalAlpha = k;
+    if (f.type === 'lightning') { const at = (f.at || 0) * BT, len = f.len || .7; if (u >= at && u < at + len) FX.lightning(c, f.x0 * W, f.y0 * H, f.x1 * W, f.y1 * H, (u - at) / len, f.seed || 1, f); }
+    else if (FX[f.type]) FX[f.type](c, t, Object.assign({}, f, { x: f.x != null ? f.x * W : undefined, y: f.y != null ? f.y * H : undefined, k: f.k != null ? f.k * k : (f.grow ? eOut(P(u, 0, f.grow * BT)) : undefined) }));
+    c.restore();
+  }
+}
+const sceneFx = (c, sc, u, d, t) => runFx(c, sc.fx, u, d, t);
+const cvB = cnv(W, H), ctxB = cvB.getContext('2d'); let cacheB = null;
+function resetC(c) { c.setTransform(1, 0, 0, 1, 0, 0); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; c.filter = 'none'; c.shadowBlur = 0; c.shadowColor = 'transparent'; c.setLineDash([]); }
+// 只画一场的内容（带镜头震动与推近），不含 HUD 和纸面质感
+function drawScene(c, sc, t, mode) {
+  const u = t - sc.t0, d = sc.t1 - sc.t0;
+  resetC(c);
+  const [sx, sy] = shake(t), [jx, jy] = STYLE.jitter(t);
+  c.save(); c.translate(sx + jx, sy + jy);
+  const z = 1 + (STYLE.motion.push ?? .03) * (u / d); c.translate(W / 2, H / 2); c.scale(z, z); c.translate(-W / 2, -H / 2);
+  if (mode === 'bg') STYLE.bg(c, u, d, t, sc.bg || {}); else { sc.fn(c, u, d, t); sceneFx(c, sc, u, d, t); }
+  c.restore(); resetC(c);
+}
 // mode = 'bg' 时只画底（质检比对空白用）
 function renderAt(t, mode) {
   t = clamp(t, 0, DUR - 1e-4);
   resetCtx();
   const sc = sceneAt(t), u = t - sc.t0, d = sc.t1 - sc.t0;
-  const [sx, sy] = shake(t), [jx, jy] = STYLE.jitter(t);
-  ctx.save(); ctx.translate(sx + jx, sy + jy);
-  const z = 1 + (STYLE.motion.push ?? .03) * (u / d); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
-  if (mode === 'bg') STYLE.bg(ctx, u, d, t, sc.bg || {}); else sc.fn(ctx, u, d, t);
-  ctx.restore(); resetCtx();
+  drawScene(ctx, sc, t, mode);
+  // 转场：上一场最后一帧画在离屏画布上，按转场类型揭开新场
+  const tr = sc.trans, prev = SC[sc.i - 1];
+  if (tr && prev && mode !== 'bg' && u < (tr.len || .6)) {
+    if (cacheB !== prev.n) { const q = QA.on; QA.on = false; drawScene(ctxB, prev, prev.t1 - 1e-3); QA.on = q; cacheB = prev.n; }
+    resetCtx(); (TRANS[tr.type] || TRANS.ink)(ctx, cvB, clamp(u / (tr.len || .6)), tr); resetCtx();
+  }
   if (mode !== 'bg' && CFG.subs && CFG.subs.length && sc.sub) { STYLE.subs(ctx, u, d, t, sc); resetCtx(); }
   if (mode !== 'bg') STYLE.hud(ctx, t, sc, u, d);
   resetCtx();

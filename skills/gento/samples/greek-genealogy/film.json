@@ -1,0 +1,28 @@
+{
+  "title": "Greek Genealogy Sample",
+  "note": "新模板样片：深空大字、族谱树、三像并列、众神墙、转场与光效；图片沿用 greek-myth 样片",
+  "style": "amphora",
+  "palette": "marble",
+  "music": "lyre",
+  "format": "16:9",
+  "fps": 30,
+  "lang": "en",
+  "subs": [
+    "ja",
+    "zh"
+  ],
+  "pace": "standard",
+  "target": 40,
+  "assets": {
+    "nike": "../greek-myth/assets/nike.webp",
+    "pan": "../greek-myth/assets/pan.webp",
+    "atlas": "../greek-myth/assets/atlas.webp",
+    "vase": "../greek-myth/assets/vase.webp",
+    "muses": "../greek-myth/assets/muses.webp",
+    "echo": "../greek-myth/assets/echo.jpg",
+    "achilles": "../greek-myth/assets/achilles.jpg",
+    "narcissus": "../greek-myth/assets/narcissus.jpg",
+    "tantalus": "../greek-myth/assets/tantalus.jpg",
+    "odysseus": "../greek-myth/assets/odysseus.jpg"
+  }
+}

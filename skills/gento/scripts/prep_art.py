@@ -42,11 +42,11 @@ def grade(img, stops, mix=.12, contrast=1.08):
     if img.mode == 'RGBA': res.putalpha(img.getchannel('A'))
     return res
 
-def cutout(img):
+def cutout(img, keep=False):
     from rembg import remove, new_session
     s = new_session('isnet-general-use')
     out = remove(img.convert('RGB'), session=s, post_process_mask=True)
-    bbox = out.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
+    bbox = None if keep else out.getchannel('A').point(lambda v: 255 if v > 24 else 0).getbbox()
     if bbox:
         pad = int(max(out.size) * .02)
         bbox = (max(0, bbox[0] - pad), max(0, bbox[1] - pad), min(out.width, bbox[2] + pad), min(out.height, bbox[3] + pad))
@@ -57,6 +57,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('src'); ap.add_argument('dst')
     ap.add_argument('--cutout', action='store_true')
+    ap.add_argument('--keep', action='store_true', help='抠图后保留原画布尺寸（视差前景层要和底图对齐）')
     ap.add_argument('--grade'); ap.add_argument('--mix', type=float, default=.12)
     ap.add_argument('--crop'); ap.add_argument('--max', type=int, default=2400)
     ap.add_argument('--contrast', type=float, default=1.08)
@@ -67,7 +68,7 @@ def main():
         x0, y0, x1, y1 = [float(v) for v in o.crop.split(',')]
         img = img.crop((int(x0 * img.width), int(y0 * img.height), int(x1 * img.width), int(y1 * img.height)))
     if max(img.size) > o.max * 1.4: img.thumbnail((int(o.max * 1.4), int(o.max * 1.4)), Image.LANCZOS)
-    if o.cutout: img = cutout(img)
+    if o.cutout: img = cutout(img, o.keep)
     if o.grade: img = grade(img, GRADES.get(o.grade) or o.grade.split(','), o.mix, o.contrast)
     img.thumbnail((o.max, o.max), Image.LANCZOS)
     if o.dst.lower().endswith(('.jpg', '.jpeg')): img.convert('RGB').save(o.dst, quality=84, optimize=True, progressive=True)

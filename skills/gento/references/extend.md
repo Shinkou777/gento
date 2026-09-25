@@ -56,3 +56,11 @@
 2. 版面用 `areas()` `stackY()` `fitBlock()`，横版和上下排两套
 3. 每个动作在 `cues` 里配一声，在 `imp` 里登记震动
 4. `references/templates.md` 表里加一行；样片脚本里用一次，跑回归
+
+## 加一种光效或转场
+
+都在 `engine/fx.js`。
+
+- 光效：往 `FX` 里加一个函数 `name(ctx, t, o)`，只看 `t` 和种子画，不存状态（逐帧渲染会跳帧、倒放）。颜色默认取 `C.a3` 和 `C.onDark`。场景里写 `fx: [{ type: 'name', ... }]` 或模板的 `back` 就能用，`x`、`y` 按 0〜1 传进来会换成像素
+- 转场：往 `TRANS` 里加 `name(c, prev, k, tr)`，`prev` 是上一场最后一帧（离屏画布），`k` 从 0 到 1。画的是「上一场还剩多少」，新场已经画在底下。再到 `engine/synth.js` 的转场配声里给它配一个声音
+- 加完在 `samples/greek-genealogy/film.js` 里用一次，跑 `test.js --matrix`（横竖两版样片都会跑到）

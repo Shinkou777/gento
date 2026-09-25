@@ -50,7 +50,8 @@ if (args.includes('--matrix')) {
   // 自带 film.js 的样片（真片子）也跑一遍
   if (!pick.length) for (const d of fs.readdirSync(path.join(ROOT, 'samples'))) {
     const dir = path.join(ROOT, 'samples', d);
-    if (!fs.existsSync(path.join(dir, 'film.js')) || !fs.existsSync(path.join(dir, 'film.json'))) continue;
+    // 自带 film.js，或 film.json 用 script 指向别的样片的分镜（同一份分镜换画幅）
+    if (!fs.existsSync(path.join(dir, 'film.json')) || !(fs.existsSync(path.join(dir, 'film.js')) || JSON.parse(fs.readFileSync(path.join(dir, 'film.json'), 'utf8')).script)) continue;
     const t0 = Date.now(), R = await check(dir);
     console.log(`${R.fails.length ? 'FAIL' : 'ok  '}  ${('film:' + d).padEnd(22)} ${R.dur}s  提醒 ${R.warns.length}  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
     for (const m of R.fails) console.log('      FAIL ' + m);

@@ -111,7 +111,15 @@ function synth() {
   // 2) 场景自带音效
   for (const s of SC) { if (s.cues) s.cues(k, s.t0, s.t1 - s.t0); }
   // 3) 转场：内容场景切入前一声风
-  for (const s of SC.slice(1)) if (s.kind !== 'chapter' && !s.noSwish) k.swish(s.t0 - .12);
+  for (const s of SC.slice(1)) {
+    if (s.trans) {
+      const ty = s.trans.type || 'ink', t0 = s.t0;
+      if (ty === 'shatter') { k.raw.noiseHit(t0, .5, 3000, 1.2, .4); k.raw.crash(t0, .7); k.raw.boom(t0, .5); }
+      else if (ty === 'sand') { k.raw.whoosh(t0 - .05, (s.trans.len || .6) + .4, .9); k.raw.noiseHit(t0, .9, 1800, .4, .5); }
+      else if (ty === 'zoom') { k.raw.riser(t0 - .5, .5, .6); k.raw.whoosh(t0, .4, .8); }
+      else { k.raw.whoosh(t0 - .08, (s.trans.len || .6) + .2, .7); }
+    } else if (s.kind !== 'chapter' && !s.noSwish) k.swish(s.t0 - .12);
+  }
   // 4) 片子额外的配乐
   if (EXTRA_SCORE) EXTRA_SCORE(k);
 

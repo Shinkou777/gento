@@ -28,8 +28,8 @@ const MUSIC_BASE = {
       if (s.kind === 'verdict' || s.quiet) { flush(); this.stop(k, s.t0, d, s); continue; }
       if (s.kind === 'outro') { flush(); this.outro(k, s.t0, d, s); continue; }
       if (s.kind === 'chapter') { k.rise(s.t0 - 2 * BT, 2 * BT); this.chapter(k, s.t0, s); }
-      if (!run) run = { from: s.t0, to: s.t1, hot: [], dark: [] };
-      run.to = s.t1; if (s.hot) run.hot.push([s.t0, s.t1]); if (s.darkMusic) run.dark.push([s.t0, s.t1]);
+      if (!run) run = { from: s.t0, to: s.t1, hot: [], dark: [], calm: [] };
+      run.to = s.t1; if (s.hot) run.hot.push([s.t0, s.t1]); if (s.darkMusic) run.dark.push([s.t0, s.t1]); if (s.calm) run.calm.push([s.t0, s.t1]);
     }
     flush();
     for (const r of runs) this.groove(k, r.from, r.to, r);
@@ -351,12 +351,15 @@ const MUSIC = {
       const sc = [293.66, 329.63, 349.23, 392, 440, 493.88, 523.25, 587.33];
       k.pad(from, [73.42, 110], to - from, .75, { cut: .011, att: 2, duck: false });
       for (let bt = Math.round(from / BT); bt < Math.round(to / BT); bt++) {
-        const t0 = bt * BT, ib = bt % 4, bar = Math.floor(bt / 4), hot = inRange(t0, o.hot), dark = inRange(t0, o.dark);
+        const t0 = bt * BT, ib = bt % 4, bar = Math.floor(bt / 4), hot = inRange(t0, o.hot), dark = inRange(t0, o.dark), calm = inRange(t0, o.calm);
         const [root, tones] = (dark ? this.darkProg : this.prog)[bar % 4];
+        if (calm) { if (ib === 0) { k.strum(t0, tones.map(f => f * 2), .45, .06, BAR); k.sub(t0, root, BAR * .95, .4); } if (ib === 2) k.ks(t0 + BT / 2, sc[(bar * 3) % sc.length] * 2, .35, 1.6); continue; }
+        if (hot && ib % 2 === 1) { k.dum(t0 + BT / 2, .6); k.tom(t0 + 3 * BT / 4, 110, .5); }
         if (ib === 0 || ib === 2) k.dum(t0, ib === 0 ? 1 : .75);
         k.tek(t0 + BT / 2, .6); if (ib === 3 || hot) k.tek(t0 + 3 * BT / 4, .45);
         if (ib === 0) { k.strum(t0, tones.map(f => f * 2), .75, .03, BAR * .9); k.sub(t0, root, BAR * .95, .55); }
-        const up = [0, 2, 4, 7, 5, 4, 2, 1][(bt * 2) % 8], up2 = [4, 5, 7, 4, 2, 4, 5, 2][(bt + bar) % 8];
+        const sect = Math.floor(bar / 8) % 3, M1 = [[0, 2, 4, 7, 5, 4, 2, 1], [4, 3, 2, 0, 1, 2, 4, 5], [7, 5, 4, 2, 4, 5, 7, 6]][sect], M2 = [[4, 5, 7, 4, 2, 4, 5, 2], [2, 4, 1, 2, 0, 1, 2, 4], [5, 4, 2, 4, 5, 7, 5, 4]][sect];
+        const up = M1[(bt * 2) % 8], up2 = M2[(bt + bar) % 8];
         k.ks(t0 + BT / 2, sc[up] * (dark ? .5 : 1), .55, 1.1, { pan: -.3 });
         if (ib % 2 === 1 || hot) k.ks(t0 + 3 * BT / 4, sc[up2], .4, .9, { pan: .3 });
       }

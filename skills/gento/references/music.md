@@ -25,7 +25,9 @@ film.json 写 `bpm` 可以改速度，音色不变。
 - `open`：每拍一个和弦重击
 - `poster`：轻鼓
 - `chapter`：前两拍起 riser，卡上一记章节刺，律动不断
-- 内容场景：律动；`hot: true` 加密，`darkMusic: true` 转暗
+- 内容场景：律动；`hot: true` 加密，`darkMusic: true` 转暗，`calm: true` 只留长音和稀疏拨弦（有的预设没有 calm 写法，就照常律动）
+- 带 `trans` 的场景切入时自动配转场声（墨晕是风声、碎裂是碎响加低鼓、沙化是长风、推镜是上扬）
+- 里拉琴的旋律每 8 小节换一组，长片不会一直重复同一句
 - `verdict` 或 `quiet: true`：律动停，只留低音和一声钟
 - `outro`：轻一点的尾声
 

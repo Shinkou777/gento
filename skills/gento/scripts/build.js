@@ -48,7 +48,7 @@ function build(dir, out) {
     '(() => {',
     `const CFG = ${JSON.stringify(cfg)};`,
     `const ASSETS = ${JSON.stringify(assets)};`,
-    src('engine/core.js'), src('engine/kit.js'), src('engine/components.js'),
+    src('engine/core.js'), src('engine/kit.js'), src('engine/fx.js'), src('engine/components.js'),
     src(`styles/${cfg.style}/style.js`),
     src('engine/resolve.js'), src('engine/synth.js'), src('music/presets.js'), src('scenes/library.js'),
     '/* ===== film.js ===== */', filmJs,
