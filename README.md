@@ -89,6 +89,16 @@ To restyle, change one field in `film.json` (style, palette, format, music) and 
 
 Add a style pack, a music preset or a scene template by following [`skills/gento/references/extend.md`](skills/gento/references/extend.md). The regression suite must pass before a change ships.
 
+## More from ShinkoLab
+
+GENTO is made by [ShinkoLab](https://shinkolab.app), the lab of Isen, who works in AI education, technical training and consulting in Japan and China.
+
+| Tool | What it does |
+|---|---|
+| [文房 BUNBO](https://github.com/Shinkou777/bunbo-skill) | Claude Code skill: source material in, a Xiaohongshu long post plus Japanese and English Instagram cards out. Same marketplace: `/plugin install bunbo@shinkolab` |
+| [浮子 UKI](https://github.com/Shinkou777/uki) | macOS desktop HUD that shows your Claude usage limits |
+| [影幕 KAGEMAKU](https://github.com/Shinkou777/kagemaku) | Frosted-glass bar for macOS that hides subtitles until you want to peek |
+
 ## Credits
 
 The engine grew out of [dario-shabi](https://github.com/Darren-Ter/dario-shabi) by Darren Ter (MIT): the single-file canvas film, the beat-grid timeline, the riso look and the offline synthesizer. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
