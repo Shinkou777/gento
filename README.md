@@ -91,7 +91,7 @@ Add a style pack, a music preset or a scene template by following [`skills/gento
 
 ## More from ShinkoLab
 
-GENTO is made by [ShinkoLab](https://shinkolab.app), the lab of Isen, who works in AI education, technical training and consulting in Japan and China.
+GENTO is made by [ShinkoLab](https://shinkolab.app), the lab of Isen, who works in AI education, technical training and consulting in Japan and China. Notes and making-of posts: [note (Japanese)](https://note.com/heishinkou) · [Xiaohongshu @先進元素](https://www.xiaohongshu.com/user/profile/5e493a3900000000010079b6).
 
 | Tool | What it does |
 |---|---|
