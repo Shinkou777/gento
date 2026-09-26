@@ -1,6 +1,6 @@
 {
   "name": "shinkolab",
-  "description": "ShinkoLab 的 Claude Code 插件：幻燈 GENTO 代码动画短片。",
+  "description": "ShinkoLab 的 Claude Code 插件：幻燈 GENTO 代码动画短片、文房 BUNBO 社交图文卡片。",
   "owner": {
     "name": "ShinkoLab",
     "url": "https://shinkolab.app"
@@ -10,6 +10,14 @@
       "name": "gento",
       "source": "./",
       "description": "幻燈 GENTO: turn a brief into a code-drawn animated short film with its own soundtrack. Nine styles, four formats, three languages."
+    },
+    {
+      "name": "bunbo",
+      "source": {
+        "source": "github",
+        "repo": "Shinkou777/bunbo-skill"
+      },
+      "description": "文房 BUNBO: turn source material into a ready-to-post card set (Xiaohongshu long post, Japanese and English Instagram cards, captions, hashtags). Local rendering, no cloud API."
     }
   ]
 }
