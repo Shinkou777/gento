@@ -1,4 +1,4 @@
-> 名字、域名、数据库、账号一律以 ShinkoTera 管理文档为准：~/DevGitRepo/shinkotera-ops/registry.yaml（GitHub Shinkou777/shinkotera-ops）。
+> 名字、域名、数据库、账号一律以 ShinkoUniv 管理文档为准：~/DevGitRepo/shinkouniv-ops/registry.yaml（GitHub Shinkou777/shinkouniv-ops）。
 
 # 幻燈 GENTO 仓库说明
 
@@ -12,6 +12,6 @@ Claude Code skill：素材 → 代码动画短片（Canvas 逐帧 + 代码合成
 
 1. 改引擎、风格包、模板、音乐之后跑 `node skills/gento/scripts/test.js --matrix`，全部通过才能提交
 2. 加风格按 `references/extend.md`，同步登记 catalog.json、styles.md、README 风格表、样片
-3. 公开仓库：提交身份用 `ShinkoTera <noreply@shinkotera.com>`（本地已配），不提交个人信息、本机绝对路径、key
+3. 公开仓库：提交身份用 `ShinkoUniv <noreply@shinkouniv.com>`（本地已配），不提交个人信息、本机绝对路径、key
 4. 屏幕文字、文档照 `~/.claude/CLAUDE.md` 的写作规则
 5. 改完直接提交推送
