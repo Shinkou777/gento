@@ -55,7 +55,7 @@ The installer links `skills/gento` into `~/.claude/skills/gento`, installs `pupp
 
 ```
 /plugin marketplace add Shinkou777/gento
-/plugin install gento@shinkolab
+/plugin install gento@shinkotera
 ```
 
 ## Use
@@ -89,13 +89,13 @@ To restyle, change one field in `film.json` (style, palette, format, music) and 
 
 Add a style pack, a music preset or a scene template by following [`skills/gento/references/extend.md`](skills/gento/references/extend.md). The regression suite must pass before a change ships.
 
-## More from ShinkoLab
+## More from ShinkoTera
 
-GENTO is made by [ShinkoLab](https://shinkolab.app), the lab of Isen, who works in AI education, technical training and consulting in Japan and China. Notes and making-of posts: [note (Japanese)](https://note.com/heishinkou) · [Xiaohongshu @先進元素](https://www.xiaohongshu.com/user/profile/5e493a3900000000010079b6).
+GENTO is made by [ShinkoTera](https://shinkotera.com), the lab of Isen, who works in AI education, technical training and consulting in Japan and China. Notes and making-of posts: [note (Japanese)](https://note.com/heishinkou) · [Xiaohongshu @先進元素](https://www.xiaohongshu.com/user/profile/5e493a3900000000010079b6).
 
 | Tool | What it does |
 |---|---|
-| [文房 BUNBO](https://github.com/Shinkou777/bunbo-skill) | Claude Code skill: source material in, a Xiaohongshu long post plus Japanese and English Instagram cards out. Same marketplace: `/plugin install bunbo@shinkolab` |
+| [文房 BUNBO](https://github.com/Shinkou777/bunbo-skill) | Claude Code skill: source material in, a Xiaohongshu long post plus Japanese and English Instagram cards out. Same marketplace: `/plugin install bunbo@shinkotera` |
 | [浮子 UKI](https://github.com/Shinkou777/uki) | macOS desktop HUD that shows your Claude usage limits |
 | [影幕 KAGEMAKU](https://github.com/Shinkou777/kagemaku) | Frosted-glass bar for macOS that hides subtitles until you want to peek |
 
